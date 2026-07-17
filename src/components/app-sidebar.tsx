@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, CalendarDays, Shield } from "lucide-react";
+import { LayoutDashboard, Users, CalendarDays, Shield, ClipboardList } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -24,6 +24,7 @@ export function AppSidebar() {
     { title: t("dashboard"), url: "/dashboard", icon: LayoutDashboard },
     { title: t("patients"), url: "/patients", icon: Users },
     { title: t("appointments"), url: "/appointments", icon: CalendarDays },
+    { title: t("follow_ups"), url: "/follow-ups", icon: ClipboardList },
   ];
 
   return (
@@ -36,25 +37,41 @@ export function AppSidebar() {
           <SidebarGroupLabel>{t("app_name")}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((it) => (
-                <SidebarMenuItem key={it.url}>
-                  <SidebarMenuButton asChild isActive={pathname === it.url || pathname.startsWith(it.url + "/")}>
-                    <Link to={it.url} className="flex items-center gap-2">
-                      <it.icon className="h-4 w-4" />
-                      <span>{it.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              {items.map((it) => {
+                const active = pathname === it.url || pathname.startsWith(it.url + "/");
+                return (
+                  <SidebarMenuItem key={it.url}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={active}
+                      className={active ? "border-l-[3px] border-primary bg-accent/60 text-primary font-medium rounded-none" : ""}
+                    >
+                      <Link to={it.url} className="flex items-center gap-2">
+                        <it.icon className="h-4 w-4" />
+                        <span>{it.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                );
+              })}
               {isAdmin && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild isActive={pathname.startsWith("/admin")}>
-                    <Link to="/admin" className="flex items-center gap-2">
-                      <Shield className="h-4 w-4" />
-                      <span>{t("admin")}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
+                (() => {
+                  const active = pathname.startsWith("/admin");
+                  return (
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={active}
+                        className={active ? "border-l-[3px] border-primary bg-accent/60 text-primary font-medium rounded-none" : ""}
+                      >
+                        <Link to="/admin" className="flex items-center gap-2">
+                          <Shield className="h-4 w-4" />
+                          <span>{t("admin")}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })()
               )}
             </SidebarMenu>
           </SidebarGroupContent>
