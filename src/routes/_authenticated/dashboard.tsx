@@ -13,7 +13,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
 });
 
-const STAGES = ["scheduled", "intake", "pre_check", "in_treatment", "post_treatment", "closed"] as const;
+const STAGES = ["pending", "called", "in_exam", "waiting_lab", "waiting_recall", "finalizing", "done"] as const;
 
 function DashboardPage() {
   const { t } = useI18n();
@@ -32,8 +32,8 @@ function DashboardPage() {
     queryKey: ["kanban-sessions"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("treatment_sessions")
-        .select("id, pipeline_status, compliance_score, appointment_id, appointments(procedure_type, scheduled_at, patients(full_name), staff!appointments_dentist_id_fkey(full_name))")
+        .from("visit_sessions")
+        .select("id, status, compliance_score, created_at, procedure_type, patients(full_name), staff!visit_sessions_assigned_dentist_id_fkey(full_name)")
         .order("created_at", { ascending: false })
         .limit(200);
       if (error) throw error;
@@ -69,7 +69,7 @@ function DashboardPage() {
   useEffect(() => {
     const ch = supabase
       .channel("kanban-live")
-      .on("postgres_changes", { event: "*", schema: "public", table: "treatment_sessions" }, () => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "visit_sessions" }, () => {
         qc.invalidateQueries({ queryKey: ["kanban-sessions"] });
       })
       .subscribe();
@@ -77,10 +77,8 @@ function DashboardPage() {
   }, [qc]);
 
   const closedToday = (sessions ?? []).filter((s: any) => {
-    if (s.pipeline_status !== "closed" || s.compliance_score == null) return false;
-    const appt = Array.isArray(s.appointments) ? s.appointments[0] : s.appointments;
-    if (!appt) return false;
-    const d = new Date(appt.scheduled_at);
+    if (s.status !== "done" || s.compliance_score == null) return false;
+    const d = new Date(s.created_at);
     const now = new Date();
     return d.toDateString() === now.toDateString();
   });
@@ -88,7 +86,7 @@ function DashboardPage() {
     ? Math.round(closedToday.reduce((s: number, x: any) => s + Number(x.compliance_score ?? 0), 0) / closedToday.length)
     : null;
 
-  const activeCount = (sessions ?? []).filter((s: any) => s.pipeline_status !== "closed").length;
+  const activeCount = (sessions ?? []).filter((s: any) => s.status !== "done").length;
 
   return (
     <div className="space-y-6">
@@ -122,9 +120,9 @@ function DashboardPage() {
       <Card>
         <CardHeader><CardTitle className="text-base">{t("kanban")}</CardTitle></CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-3">
             {STAGES.map((stage) => {
-              const items = (sessions ?? []).filter((s: any) => s.pipeline_status === stage);
+              const items = (sessions ?? []).filter((s: any) => s.status === stage);
               return (
                 <div key={stage} className="rounded-lg bg-secondary p-2 min-h-[120px]">
                   <div className="flex items-center justify-between px-1 pb-2">
@@ -133,16 +131,15 @@ function DashboardPage() {
                   </div>
                   <div className="space-y-2">
                     {items.map((s: any) => {
-                      const appt = Array.isArray(s.appointments) ? s.appointments[0] : s.appointments;
-                      const patient = appt ? (Array.isArray(appt.patients) ? appt.patients[0] : appt.patients) : null;
-                      const dentist = appt ? (Array.isArray(appt.staff) ? appt.staff[0] : appt.staff) : null;
+                      const patient = Array.isArray(s.patients) ? s.patients[0] : s.patients;
+                      const dentist = Array.isArray(s.staff) ? s.staff[0] : s.staff;
                       return (
-                        <Link key={s.id} to="/sessions/$id" params={{ id: s.id }} className="block">
+                        <Link key={s.id} to="/visits/$id" params={{ id: s.id }} className="block">
                           <div className="rounded-md border bg-card p-2 hover:border-primary transition-colors">
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0">
                                 <div className="font-medium text-sm truncate">{patient?.full_name ?? "—"}</div>
-                                <div className="text-[11px] text-muted-foreground">{appt ? t(appt.procedure_type) : "—"}</div>
+                                <div className="text-[11px] text-muted-foreground">{s.procedure_type ? t(s.procedure_type) : "—"}</div>
                                 <div className="text-[11px] text-muted-foreground truncate">{dentist?.full_name ?? "—"}</div>
                               </div>
                               <ComplianceRing value={s.compliance_score} size={34} strokeWidth={4} />
@@ -212,7 +209,7 @@ function AlertsFeed() {
                 <div className="text-[11px] text-muted-foreground">{new Date(a.created_at).toLocaleString()}</div>
               </div>
               {a.session_id && (
-                <Link to="/sessions/$id" params={{ id: a.session_id }} className="text-xs text-primary hover:underline">{t("view")}</Link>
+                <Link to="/visits/$id" params={{ id: a.session_id }} className="text-xs text-primary hover:underline">{t("view")}</Link>
               )}
               {!a.dismissed_at && (
                 <button className="text-xs text-muted-foreground hover:text-foreground" onClick={() => dismiss(a.id)}>{t("dismiss")}</button>
@@ -280,7 +277,7 @@ function ExceptionLog() {
                   return (
                     <tr key={r.id} className="border-t">
                       <td className="py-2 pr-2">
-                        <Link to="/sessions/$id" params={{ id: r.session_id }} className="hover:text-primary">
+                        <Link to="/visits/$id" params={{ id: r.session_id }} className="hover:text-primary">
                           {rule?.label_vi ?? rule?.label}
                         </Link>
                       </td>

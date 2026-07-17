@@ -67,68 +67,7 @@ export type Database = {
             foreignKeyName: "alerts_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
-            referencedRelation: "treatment_sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      appointments: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          dentist_id: string
-          duration_mins: number
-          id: string
-          notes: string | null
-          patient_id: string
-          procedure_type: Database["public"]["Enums"]["procedure_type"]
-          scheduled_at: string
-          status: Database["public"]["Enums"]["appointment_status"]
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          dentist_id: string
-          duration_mins?: number
-          id?: string
-          notes?: string | null
-          patient_id: string
-          procedure_type: Database["public"]["Enums"]["procedure_type"]
-          scheduled_at: string
-          status?: Database["public"]["Enums"]["appointment_status"]
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          dentist_id?: string
-          duration_mins?: number
-          id?: string
-          notes?: string | null
-          patient_id?: string
-          procedure_type?: Database["public"]["Enums"]["procedure_type"]
-          scheduled_at?: string
-          status?: Database["public"]["Enums"]["appointment_status"]
-        }
-        Relationships: [
-          {
-            foreignKeyName: "appointments_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "appointments_dentist_id_fkey"
-            columns: ["dentist_id"]
-            isOneToOne: false
-            referencedRelation: "staff"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "appointments_patient_id_fkey"
-            columns: ["patient_id"]
-            isOneToOne: false
-            referencedRelation: "patients"
+            referencedRelation: "visit_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -189,7 +128,7 @@ export type Database = {
             foreignKeyName: "checklist_items_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
-            referencedRelation: "treatment_sessions"
+            referencedRelation: "visit_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -230,6 +169,21 @@ export type Database = {
           required?: boolean
           sort_order?: number
           trigger_timing?: Database["public"]["Enums"]["checklist_timing"]
+        }
+        Relationships: []
+      }
+      daily_session_counters: {
+        Row: {
+          counter_date: string
+          next_number: number
+        }
+        Insert: {
+          counter_date: string
+          next_number?: number
+        }
+        Update: {
+          counter_date?: string
+          next_number?: number
         }
         Relationships: []
       }
@@ -282,7 +236,71 @@ export type Database = {
             foreignKeyName: "follow_ups_session_id_fkey"
             columns: ["session_id"]
             isOneToOne: false
-            referencedRelation: "treatment_sessions"
+            referencedRelation: "visit_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lab_orders: {
+        Row: {
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          ordered_by: string | null
+          result_note: string | null
+          round_number: number
+          status: Database["public"]["Enums"]["lab_order_status"]
+          test_name: string
+          visit_session_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          ordered_by?: string | null
+          result_note?: string | null
+          round_number?: number
+          status?: Database["public"]["Enums"]["lab_order_status"]
+          test_name: string
+          visit_session_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          ordered_by?: string | null
+          result_note?: string | null
+          round_number?: number
+          status?: Database["public"]["Enums"]["lab_order_status"]
+          test_name?: string
+          visit_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_orders_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_orders_ordered_by_fkey"
+            columns: ["ordered_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_orders_visit_session_id_fkey"
+            columns: ["visit_session_id"]
+            isOneToOne: false
+            referencedRelation: "visit_sessions"
             referencedColumns: ["id"]
           },
         ]
@@ -388,51 +406,6 @@ export type Database = {
         }
         Relationships: []
       }
-      treatment_sessions: {
-        Row: {
-          appointment_id: string
-          closed_at: string | null
-          compliance_score: number | null
-          created_at: string
-          id: string
-          pipeline_status: Database["public"]["Enums"]["session_status"]
-          primary_dentist_id: string | null
-        }
-        Insert: {
-          appointment_id: string
-          closed_at?: string | null
-          compliance_score?: number | null
-          created_at?: string
-          id?: string
-          pipeline_status?: Database["public"]["Enums"]["session_status"]
-          primary_dentist_id?: string | null
-        }
-        Update: {
-          appointment_id?: string
-          closed_at?: string | null
-          compliance_score?: number | null
-          created_at?: string
-          id?: string
-          pipeline_status?: Database["public"]["Enums"]["session_status"]
-          primary_dentist_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "treatment_sessions_appointment_id_fkey"
-            columns: ["appointment_id"]
-            isOneToOne: true
-            referencedRelation: "appointments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "treatment_sessions_primary_dentist_id_fkey"
-            columns: ["primary_dentist_id"]
-            isOneToOne: false
-            referencedRelation: "staff"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_roles: {
         Row: {
           created_at: string
@@ -454,6 +427,158 @@ export type Database = {
         }
         Relationships: []
       }
+      visit_exam_rounds: {
+        Row: {
+          called_at: string | null
+          clinical_exam_note: string | null
+          completed_at: string | null
+          created_at: string
+          crm_lookup_used: boolean
+          dentist_id: string | null
+          id: string
+          needs_lab: boolean
+          round_number: number
+          symptoms_note: string | null
+          visit_session_id: string
+        }
+        Insert: {
+          called_at?: string | null
+          clinical_exam_note?: string | null
+          completed_at?: string | null
+          created_at?: string
+          crm_lookup_used?: boolean
+          dentist_id?: string | null
+          id?: string
+          needs_lab?: boolean
+          round_number?: number
+          symptoms_note?: string | null
+          visit_session_id: string
+        }
+        Update: {
+          called_at?: string | null
+          clinical_exam_note?: string | null
+          completed_at?: string | null
+          created_at?: string
+          crm_lookup_used?: boolean
+          dentist_id?: string | null
+          id?: string
+          needs_lab?: boolean
+          round_number?: number
+          symptoms_note?: string | null
+          visit_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_exam_rounds_dentist_id_fkey"
+            columns: ["dentist_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_exam_rounds_visit_session_id_fkey"
+            columns: ["visit_session_id"]
+            isOneToOne: false
+            referencedRelation: "visit_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      visit_sessions: {
+        Row: {
+          assigned_dentist_id: string | null
+          bed_number: string | null
+          chief_complaint: string | null
+          closed_at: string | null
+          compliance_score: number | null
+          created_at: string
+          created_by: string | null
+          current_round: number
+          cycle_number: number
+          diagnosis: string | null
+          id: string
+          is_emergency: boolean
+          patient_id: string
+          prescription: string | null
+          procedure_type: Database["public"]["Enums"]["procedure_type"] | null
+          root_session_id: string | null
+          session_number: number | null
+          status: Database["public"]["Enums"]["visit_status"]
+          treatment_plan: string | null
+        }
+        Insert: {
+          assigned_dentist_id?: string | null
+          bed_number?: string | null
+          chief_complaint?: string | null
+          closed_at?: string | null
+          compliance_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          current_round?: number
+          cycle_number?: number
+          diagnosis?: string | null
+          id?: string
+          is_emergency?: boolean
+          patient_id: string
+          prescription?: string | null
+          procedure_type?: Database["public"]["Enums"]["procedure_type"] | null
+          root_session_id?: string | null
+          session_number?: number | null
+          status?: Database["public"]["Enums"]["visit_status"]
+          treatment_plan?: string | null
+        }
+        Update: {
+          assigned_dentist_id?: string | null
+          bed_number?: string | null
+          chief_complaint?: string | null
+          closed_at?: string | null
+          compliance_score?: number | null
+          created_at?: string
+          created_by?: string | null
+          current_round?: number
+          cycle_number?: number
+          diagnosis?: string | null
+          id?: string
+          is_emergency?: boolean
+          patient_id?: string
+          prescription?: string | null
+          procedure_type?: Database["public"]["Enums"]["procedure_type"] | null
+          root_session_id?: string | null
+          session_number?: number | null
+          status?: Database["public"]["Enums"]["visit_status"]
+          treatment_plan?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visit_sessions_assigned_dentist_id_fkey"
+            columns: ["assigned_dentist_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_sessions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_sessions_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "visit_sessions_root_session_id_fkey"
+            columns: ["root_session_id"]
+            isOneToOne: false
+            referencedRelation: "visit_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -472,12 +597,7 @@ export type Database = {
     Enums: {
       alert_severity: "info" | "warning" | "critical"
       allergy_severity: "mild" | "moderate" | "severe"
-      app_role: "admin" | "dentist" | "assistant" | "receptionist"
-      appointment_status:
-        | "scheduled"
-        | "in_progress"
-        | "completed"
-        | "cancelled"
+      app_role: "admin" | "dentist" | "assistant" | "receptionist" | "lab_technician"
       checklist_category:
         | "documentation"
         | "clinical_step"
@@ -493,19 +613,22 @@ export type Database = {
         | "other"
       followup_status: "scheduled" | "contacted" | "completed" | "missed"
       followup_type: "call" | "review"
+      lab_order_status: "ordered" | "in_progress" | "completed"
       procedure_type:
         | "extraction"
         | "root_canal"
         | "scaling"
         | "implant"
         | "filling"
-      session_status:
-        | "scheduled"
-        | "intake"
-        | "pre_check"
-        | "in_treatment"
-        | "post_treatment"
-        | "closed"
+      visit_status:
+        | "pending"
+        | "called"
+        | "in_exam"
+        | "waiting_lab"
+        | "waiting_recall"
+        | "finalizing"
+        | "transferred"
+        | "done"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -635,13 +758,7 @@ export const Constants = {
     Enums: {
       alert_severity: ["info", "warning", "critical"],
       allergy_severity: ["mild", "moderate", "severe"],
-      app_role: ["admin", "dentist", "assistant", "receptionist"],
-      appointment_status: [
-        "scheduled",
-        "in_progress",
-        "completed",
-        "cancelled",
-      ],
+      app_role: ["admin", "dentist", "assistant", "receptionist", "lab_technician"],
       checklist_category: [
         "documentation",
         "clinical_step",
@@ -659,6 +776,7 @@ export const Constants = {
       ],
       followup_status: ["scheduled", "contacted", "completed", "missed"],
       followup_type: ["call", "review"],
+      lab_order_status: ["ordered", "in_progress", "completed"],
       procedure_type: [
         "extraction",
         "root_canal",
@@ -666,13 +784,15 @@ export const Constants = {
         "implant",
         "filling",
       ],
-      session_status: [
-        "scheduled",
-        "intake",
-        "pre_check",
-        "in_treatment",
-        "post_treatment",
-        "closed",
+      visit_status: [
+        "pending",
+        "called",
+        "in_exam",
+        "waiting_lab",
+        "waiting_recall",
+        "finalizing",
+        "transferred",
+        "done",
       ],
     },
   },

@@ -92,7 +92,7 @@ function AlertItem({ alert, onDismiss }: { alert: any; onDismiss: () => void }) 
           {new Date(alert.created_at).toLocaleString()}
         </div>
         {alert.session_id && (
-          <Link to="/sessions/$id" params={{ id: alert.session_id }} className="text-xs text-primary hover:underline">
+          <Link to="/visits/$id" params={{ id: alert.session_id }} className="text-xs text-primary hover:underline">
             {t("view")} →
           </Link>
         )}

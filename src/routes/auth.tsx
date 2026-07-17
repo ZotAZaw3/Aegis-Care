@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { LanguageToggle } from "@/components/language-toggle";
+import { Stethoscope, ShieldCheck } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -57,45 +58,78 @@ function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
-      <div className="w-full max-w-md">
-        <div className="flex justify-end mb-3"><LanguageToggle /></div>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl">{t("app_name")}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={submit} className="space-y-4">
-              {mode === "signup" && (
-                <div className="space-y-2">
-                  <Label htmlFor="fn">{t("full_name")}</Label>
-                  <Input id="fn" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
-                </div>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="em">{t("email")}</Label>
-                <Input id="em" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="pw">{t("password")}</Label>
-                <Input id="pw" type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
-              </div>
-              <Button type="submit" className="w-full" disabled={busy}>
+    <div className="min-h-screen grid lg:grid-cols-2 bg-background">
+      <div className="hidden lg:flex flex-col justify-between bg-primary text-primary-foreground p-10 xl:p-14">
+        <div className="flex items-center gap-2.5 font-heading text-lg font-semibold">
+          <Stethoscope className="h-6 w-6" />
+          <span>{t("app_name")}</span>
+        </div>
+        <div className="max-w-md space-y-4">
+          <h1 className="font-heading text-3xl xl:text-4xl font-semibold leading-tight">{t("app_tagline")}</h1>
+        </div>
+        <div className="flex items-center gap-2 text-sm text-primary-foreground/80">
+          <ShieldCheck className="h-4 w-4 shrink-0" />
+          <span>{t("data_security_note")}</span>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center p-4 sm:p-8">
+        <div className="w-full max-w-sm">
+          <div className="flex items-center justify-between mb-6 lg:hidden">
+            <div className="flex items-center gap-2 font-heading font-semibold text-primary">
+              <Stethoscope className="h-5 w-5" />
+              <span>{t("app_name")}</span>
+            </div>
+            <LanguageToggle />
+          </div>
+          <div className="hidden lg:flex justify-end mb-4"><LanguageToggle /></div>
+          <Card className="shadow-lg border-border/60">
+            <CardHeader>
+              <CardTitle className="font-heading text-2xl">
                 {mode === "signup" ? t("signup") : t("signin")}
-              </Button>
-              <button
-                type="button"
-                className="text-sm text-primary underline w-full text-center"
-                onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
-              >
-                {mode === "signup" ? t("already_have_account") + " " + t("signin") : t("no_account") + " " + t("signup")}
-              </button>
-              {mode === "signup" && (
-                <p className="text-xs text-muted-foreground text-center">{t("add_first_admin_hint")}</p>
-              )}
-            </form>
-          </CardContent>
-        </Card>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={submit} className="space-y-4">
+                {mode === "signup" && (
+                  <div className="space-y-2">
+                    <Label htmlFor="fn">{t("full_name")}</Label>
+                    <Input id="fn" required value={fullName} onChange={(e) => setFullName(e.target.value)} />
+                  </div>
+                )}
+                <div className="space-y-2">
+                  <Label htmlFor="em">{t("email")}</Label>
+                  <Input id="em" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pw">{t("password")}</Label>
+                  <Input
+                    id="pw"
+                    type="password"
+                    autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={busy}>
+                  {mode === "signup" ? t("signup") : t("signin")}
+                </Button>
+                <button
+                  type="button"
+                  className="text-sm text-primary hover:underline w-full text-center"
+                  onClick={() => setMode(mode === "signup" ? "signin" : "signup")}
+                >
+                  {mode === "signup" ? t("already_have_account") + " " + t("signin") : t("no_account") + " " + t("signup")}
+                </button>
+                {mode === "signup" && (
+                  <p className="text-xs text-muted-foreground text-center">{t("add_first_admin_hint")}</p>
+                )}
+              </form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

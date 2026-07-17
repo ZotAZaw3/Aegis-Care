@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{const o=JSON.parse(d||'{}');const rec={ts:new Date().toISOString(),session_id:o.session_id||null,prompt:o.prompt||o.message||null};require('fs').appendFileSync('.claude/prompt-log.jsonl', JSON.stringify(rec)+'\\n');}catch(e){}});\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}

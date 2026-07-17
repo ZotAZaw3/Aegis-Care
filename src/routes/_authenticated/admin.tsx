@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   component: AdminPage,
 });
 
-const ROLES: AppRole[] = ["admin", "dentist", "assistant", "receptionist"];
+const ROLES: AppRole[] = ["admin", "dentist", "assistant", "receptionist", "lab_technician"];
 
 function AdminPage() {
   const { t } = useI18n();

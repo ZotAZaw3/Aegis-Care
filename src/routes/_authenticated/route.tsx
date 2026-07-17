@@ -29,7 +29,7 @@ function AuthedLayout() {
           <header className="sticky top-0 z-30 h-14 flex items-center justify-between border-b bg-background px-3 gap-2 shadow-sm">
             <div className="flex items-center gap-2">
               <SidebarTrigger />
-              <div className="hidden sm:flex items-center gap-2 text-primary font-semibold">
+              <div className="hidden sm:flex items-center gap-2 text-primary font-heading font-semibold">
                 <Stethoscope className="h-5 w-5" />
                 <span>{t("app_name")}</span>
               </div>

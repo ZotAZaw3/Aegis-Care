@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, CalendarDays, Shield, ClipboardList } from "lucide-react";
+import { LayoutDashboard, Users, UserPlus, ListOrdered, FlaskConical, Shield, ClipboardList, Stethoscope } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -19,18 +19,22 @@ export function AppSidebar() {
   const { roles } = useAuth();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const isAdmin = roles.includes("admin");
+  const has = (...allowed: string[]) => isAdmin || allowed.some((r) => roles.includes(r as any));
 
   const items = [
     { title: t("dashboard"), url: "/dashboard", icon: LayoutDashboard },
     { title: t("patients"), url: "/patients", icon: Users },
-    { title: t("appointments"), url: "/appointments", icon: CalendarDays },
+    ...(has("receptionist") ? [{ title: t("check_in"), url: "/checkin", icon: UserPlus }] : []),
+    ...(has("assistant") ? [{ title: t("queue"), url: "/queue", icon: ListOrdered }] : []),
+    ...(has("lab_technician") ? [{ title: t("lab"), url: "/lab", icon: FlaskConical }] : []),
     { title: t("follow_ups"), url: "/follow-ups", icon: ClipboardList },
   ];
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="px-4 py-3 font-semibold text-primary">
-        {t("app_name")}
+      <SidebarHeader className="px-4 py-3.5 flex-row items-center gap-2 font-heading font-semibold text-primary">
+        <Stethoscope className="h-5 w-5 shrink-0" />
+        <span className="truncate group-data-[collapsible=icon]:hidden">{t("app_name")}</span>
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>

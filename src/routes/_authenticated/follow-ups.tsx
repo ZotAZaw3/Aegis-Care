@@ -34,7 +34,7 @@ function FollowUpsPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("follow_ups")
-        .select("id, session_id, followup_type, due_date, status, treatment_sessions(id, appointments(procedure_type, patients(full_name), staff!appointments_dentist_id_fkey(full_name)))")
+        .select("id, session_id, followup_type, due_date, status, visit_sessions(id, procedure_type, patients(full_name), staff!visit_sessions_assigned_dentist_id_fkey(full_name))")
         .order("due_date", { ascending: true });
       return data ?? [];
     },
@@ -81,19 +81,18 @@ function FollowUpsPage() {
                 </thead>
                 <tbody>
                   {(data ?? []).map((f: any) => {
-                    const s = Array.isArray(f.treatment_sessions) ? f.treatment_sessions[0] : f.treatment_sessions;
-                    const appt = s ? (Array.isArray(s.appointments) ? s.appointments[0] : s.appointments) : null;
-                    const patient = appt ? (Array.isArray(appt.patients) ? appt.patients[0] : appt.patients) : null;
-                    const dentist = appt ? (Array.isArray(appt.staff) ? appt.staff[0] : appt.staff) : null;
+                    const s = Array.isArray(f.visit_sessions) ? f.visit_sessions[0] : f.visit_sessions;
+                    const patient = s ? (Array.isArray(s.patients) ? s.patients[0] : s.patients) : null;
+                    const dentist = s ? (Array.isArray(s.staff) ? s.staff[0] : s.staff) : null;
                     const overdue = f.status === "scheduled" && new Date(f.due_date) < new Date();
                     return (
                       <tr key={f.id} className="border-t">
                         <td className="py-2 pr-3">
-                          <Link to="/sessions/$id" params={{ id: f.session_id }} className="hover:text-primary">
+                          <Link to="/visits/$id" params={{ id: f.session_id }} className="hover:text-primary">
                             {patient?.full_name ?? "—"}
                           </Link>
                         </td>
-                        <td className="py-2 pr-3">{appt ? t(appt.procedure_type) : "—"}</td>
+                        <td className="py-2 pr-3">{s?.procedure_type ? t(s.procedure_type) : "—"}</td>
                         <td className="py-2 pr-3">{dentist?.full_name ?? "—"}</td>
                         <td className="py-2 pr-3">{t(f.followup_type)}</td>
                         <td className={cn("py-2 pr-3", overdue && "text-destructive font-medium")}>

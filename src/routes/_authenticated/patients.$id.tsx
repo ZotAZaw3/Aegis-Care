@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +33,20 @@ function PatientDetail() {
     queryKey: ["allergies", id],
     queryFn: async () => {
       const { data, error } = await supabase.from("patient_allergies").select("*").eq("patient_id", id).order("created_at");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: visits } = useQuery({
+    queryKey: ["patient-visits", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("visit_sessions")
+        .select("id, created_at, session_number, bed_number, procedure_type, diagnosis, status")
+        .eq("patient_id", id)
+        .order("created_at", { ascending: false })
+        .limit(20);
       if (error) throw error;
       return data;
     },
@@ -77,6 +91,24 @@ function PatientDetail() {
           </div>
         </div>
       )}
+
+      <Card>
+        <CardHeader><CardTitle>{t("visit_history")}</CardTitle></CardHeader>
+        <CardContent className="p-0 divide-y">
+          {!visits || visits.length === 0 ? (
+            <div className="p-4 text-sm text-muted-foreground">{t("no_visits")}</div>
+          ) : visits.map((v) => (
+            <Link key={v.id} to="/visits/$id" params={{ id: v.id }} className="flex items-center justify-between p-3 text-sm hover:bg-accent">
+              <div>
+                <span className="font-medium">{v.bed_number ? `${t("bed_label")} ${v.bed_number}` : `${t("number_label")} ${v.session_number}`}</span>
+                <span className="text-muted-foreground"> · {new Date(v.created_at).toLocaleDateString()}{v.procedure_type ? ` · ${t(v.procedure_type as any)}` : ""}</span>
+                {v.diagnosis && <div className="text-xs text-muted-foreground">{v.diagnosis}</div>}
+              </div>
+              <span className="text-xs text-muted-foreground">{t(v.status as any)}</span>
+            </Link>
+          ))}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader><CardTitle>{t("allergies")}</CardTitle></CardHeader>
