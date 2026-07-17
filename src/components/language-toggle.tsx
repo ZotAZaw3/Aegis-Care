@@ -1,5 +1,4 @@
 import { useI18n } from "@/lib/i18n";
-import { Button } from "@/components/ui/button";
 
 export function LanguageToggle() {
   const { lang, setLang } = useI18n();
@@ -22,6 +21,3 @@ export function LanguageToggle() {
     </div>
   );
 }
-
-// keep unused import friendly
-export const _Button = Button;
