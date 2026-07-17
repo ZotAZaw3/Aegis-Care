@@ -12,8 +12,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, CheckCircle2, Clock, Circle, Search } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertTriangle, CheckCircle2, Clock, Circle, Search, QrCode } from "lucide-react";
 import { toast } from "sonner";
+import QRCode from "qrcode";
 import { ComplianceRing } from "@/components/compliance-ring";
 import { RoleBadge } from "@/components/role-badge";
 import { cn } from "@/lib/utils";
@@ -206,6 +208,21 @@ function VisitPage() {
     qc.invalidateQueries({ queryKey: ["visit", id] });
   };
 
+  const copyPatientLink = async () => {
+    const url = `${window.location.origin}/my-checklist/${id}`;
+    await navigator.clipboard.writeText(url);
+    toast.success(t("patient_link_copied"));
+  };
+
+  const [qrOpen, setQrOpen] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const showPatientQr = async () => {
+    const url = `${window.location.origin}/my-checklist/${id}`;
+    const dataUrl = await QRCode.toDataURL(url, { width: 320, margin: 1 });
+    setQrDataUrl(dataUrl);
+    setQrOpen(true);
+  };
+
   // ==== Round progression ====
   const recallPatient = async () => {
     await supabase.from("visit_sessions").update({ current_round: (session!.current_round ?? 1) + 1, status: "waiting_recall" }).eq("id", id);
@@ -388,7 +405,13 @@ function VisitPage() {
             )}
             {roundLabOrders && roundLabOrders.length > 0 && (
               <div className="pl-6 space-y-1">
-                <Label>{t("lab_orders")}</Label>
+                <div className="flex items-center justify-between gap-2">
+                  <Label>{t("lab_orders")}</Label>
+                  <div className="flex items-center gap-1">
+                    <Button type="button" size="sm" variant="ghost" onClick={copyPatientLink}>{t("copy_patient_link")}</Button>
+                    <Button type="button" size="sm" variant="ghost" onClick={showPatientQr}><QrCode className="h-3.5 w-3.5" /> {t("show_patient_qr")}</Button>
+                  </div>
+                </div>
                 {roundLabOrders.map((o: any) => (
                   <div key={o.id} className="flex items-center justify-between text-xs border rounded p-2">
                     <span>{o.test_name}</span>
@@ -530,6 +553,16 @@ function VisitPage() {
           </form>
         </SheetContent>
       </Sheet>
+
+      <Dialog open={qrOpen} onOpenChange={setQrOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader><DialogTitle>{t("show_patient_qr")}</DialogTitle></DialogHeader>
+          <div className="flex flex-col items-center gap-3 py-2">
+            {qrDataUrl && <img src={qrDataUrl} alt="QR" className="w-full max-w-[280px] rounded-md border" />}
+            <p className="text-xs text-muted-foreground text-center">{t("patient_qr_hint")}</p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

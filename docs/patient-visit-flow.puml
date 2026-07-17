@@ -1,0 +1,86 @@
+@startuml patient-visit-flow
+title Luồng khám bệnh nhân theo số session (Patient Visit Flow)
+
+|Bệnh nhân|
+start
+:Đến lễ tân để khám;
+
+|Lễ tân|
+:Hỏi thông tin cơ bản\n(tên, tuổi, SĐT, ngày sinh);
+
+|Hệ thống|
+if (Bệnh nhân cấp cứu\n(nội trú trước khi vào viện)?) then (có)
+  :Tạo session **dynamic**\ntheo số giường (vd: #2201);
+  note right
+    Không dùng số tuần tự 0-999.
+    Khoá theo bed number,
+    tồn tại độc lập với hàng đợi thường.
+  end note
+else (không)
+  :Cấp số session tuần tự 0-999\n(tăng dần);
+  :Gán state = **pending** (chưa xong);
+endif
+
+|Bệnh nhân|
+:Chờ đến lượt gọi số;
+
+|Hệ thống|
+:Xác định số session tiếp theo cần gọi;
+
+repeat
+  |Điều dưỡng|
+  :Gọi số bệnh nhân vào phòng khám;
+
+  |Bác sĩ|
+  :Xem hồ sơ bệnh án qua CRM\n(tiền sử, bệnh sử...);
+  if (Triệu chứng lạ /\nkhông rõ nguyên nhân?) then (có)
+    :Tra cứu CRM: tìm bệnh nhân từng điều trị\ntại bệnh viện có triệu chứng tương tự;
+  else (không)
+  endif
+  :Khám lâm sàng cho bệnh nhân;
+
+  if (Có yêu cầu xét nghiệm?) then (có)
+    :Đề ra yêu cầu xét nghiệm\ntrên app/web;
+
+    |Bệnh nhân|
+    :Thực hiện các thủ tục\nxét nghiệm cần thiết;
+
+    |Hệ thống|
+    :Hiển thị checklist các mục\nxét nghiệm theo session;
+
+    |Nhân viên xét nghiệm|
+    :Thực hiện xét nghiệm;
+    :Tự check hoàn thành từng mục\ncho bệnh nhân trên hệ thống\n(theo số session);
+
+    |Bệnh nhân|
+    :Chờ gọi số để bác sĩ khám;
+  else (không)
+  endif
+repeat while (Bác sĩ cần gọi khám lại\nthêm vòng nữa?) is (có) not (không)
+
+|Bác sĩ|
+:Chẩn đoán phân biệt;
+:Đưa ra phác đồ điều trị,\nkết quả, kê thuốc;
+:Xác nhận hoàn thành trên hệ thống;
+
+|Hệ thống|
+:Đánh dấu session id = **done**\n(đã xong);
+
+|Lễ tân|
+if (Bệnh nhân chuyển nội trú\nsau khám lâm sàng\n(dính số session)?) then (có)
+  :Lưu lại session theo **cycle**\n(vd: cycle1 #58, cycle2 #58);
+  note right
+    Bệnh nhân tương tác với hệ thống qua
+    mục checklist các xét nghiệm cần thiết
+    của họ.
+
+    Giao diện tự động fit theo màn hình
+    dọc điện thoại, để người dùng chỉ cần
+    quan tâm những xét nghiệm còn thiếu
+    hoặc đã hoàn thành.
+  end note
+else (không)
+endif
+
+stop
+@enduml

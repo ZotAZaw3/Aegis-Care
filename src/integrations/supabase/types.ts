@@ -585,6 +585,18 @@ export type Database = {
     }
     Functions: {
       escalate_overdue_followups: { Args: never; Returns: number }
+      get_patient_checklist: {
+        Args: { p_session_id: string }
+        Returns: {
+          bed_number: string | null
+          cycle_number: number
+          patient_name: string
+          round_number: number | null
+          session_number: number | null
+          status: Database["public"]["Enums"]["lab_order_status"] | null
+          test_name: string | null
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

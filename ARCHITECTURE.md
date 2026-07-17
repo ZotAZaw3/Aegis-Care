@@ -131,6 +131,30 @@ status` is the enum `visit_status`.
 | `/patients`, `/patients/$id` | all | Patient directory, allergies, visit history |
 | `/follow-ups` | all | Recall queue (unchanged concept, repointed to `visit_sessions`) |
 | `/admin` | admin | Staff/role management |
+| `/crm` | admin | Placeholder CRM area — bulk data upload only, other CRM features (lookup/matching against the doctor's symptom search) are future work |
+| `/my-checklist/$id` | Bệnh nhân (public, no login) | Mobile-first, read-only view of their own lab-order checklist for one `visit_sessions.id`, polling every 15s |
+
+`/my-checklist/$id` sits outside the `_authenticated` layout (patients have no
+`auth.users`/`user_roles` row). It never queries `visit_sessions`/`lab_orders`
+directly — it calls `get_patient_checklist(p_session_id)`, a `SECURITY
+DEFINER` Postgres function granted `EXECUTE` to `anon`, which returns only
+session_number/bed_number/cycle_number/patient_name plus each lab order's
+test_name/status/round_number for that one id (no diagnosis, no other
+patients, no way to enumerate sessions). The link
+(`/my-checklist/{visit_sessions.id}`) is handed to the patient by staff — a
+"Copy patient link" button and a "QR code" button (generated client-side with
+the `qrcode` package, no third-party image service involved) sit next to the
+lab-orders list on `/visits/$id`. Access control is capability-based (an
+unguessable UUID in the URL), not RLS — this is the same trust model as e.g.
+a calendar invite link, and is why the function is scoped to the absolute
+minimum columns rather than opening `visit_sessions`/`lab_orders` to `anon`
+reads.
+
+`/crm` uploads go to a private Supabase Storage bucket (`crm_data`), with a
+`storage.objects` RLS policy restricting all access to `has_role(auth.uid(),
+'admin')` — this is intentionally a stub (upload/list/download/delete a raw
+file) ahead of building the actual CRM data pipeline that would feed the
+symptom-similarity search on `/visits/$id`.
 
 ## Realtime & RLS conventions
 
