@@ -1,0 +1,114 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useI18n } from "@/lib/i18n";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertTriangle, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+
+export const Route = createFileRoute("/_authenticated/patients/$id")({
+  component: PatientDetail,
+});
+
+function PatientDetail() {
+  const { id } = Route.useParams();
+  const { t } = useI18n();
+  const qc = useQueryClient();
+
+  const { data: patient } = useQuery({
+    queryKey: ["patient", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("patients").select("*").eq("id", id).single();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: allergies } = useQuery({
+    queryKey: ["allergies", id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("patient_allergies").select("*").eq("patient_id", id).order("created_at");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const [form, setForm] = useState({ allergen: "", severity: "mild" as "mild" | "moderate" | "severe", note: "" });
+
+  const addAllergy = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const { error } = await supabase.from("patient_allergies").insert({ patient_id: id, ...form });
+    if (error) return toast.error(error.message);
+    setForm({ allergen: "", severity: "mild", note: "" });
+    qc.invalidateQueries({ queryKey: ["allergies", id] });
+  };
+
+  const removeAllergy = async (aid: string) => {
+    const { error } = await supabase.from("patient_allergies").delete().eq("id", aid);
+    if (error) return toast.error(error.message);
+    qc.invalidateQueries({ queryKey: ["allergies", id] });
+  };
+
+  const sevClass = (s: string) =>
+    s === "severe" ? "bg-destructive text-destructive-foreground" : s === "moderate" ? "bg-warning text-warning-foreground" : "bg-muted text-muted-foreground";
+
+  if (!patient) return null;
+
+  return (
+    <div className="space-y-4 max-w-3xl">
+      <h1 className="text-2xl font-semibold">{patient.full_name}</h1>
+      <div className="text-sm text-muted-foreground">
+        {patient.phone && <span>{t("phone")}: {patient.phone} · </span>}
+        {patient.email && <span>{patient.email} · </span>}
+        {patient.dob && <span>{t("dob")}: {patient.dob}</span>}
+      </div>
+
+      {allergies && allergies.length > 0 && (
+        <div className="flex items-start gap-2 p-3 rounded-md border border-destructive/40 bg-destructive/10 text-destructive text-sm">
+          <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
+          <div>
+            <div className="font-semibold">{t("allergies")}</div>
+            <div>{allergies.map((a) => `${a.allergen} (${t(a.severity as any)})`).join(", ")}</div>
+          </div>
+        </div>
+      )}
+
+      <Card>
+        <CardHeader><CardTitle>{t("allergies")}</CardTitle></CardHeader>
+        <CardContent className="space-y-3">
+          {allergies?.map((a) => (
+            <div key={a.id} className="flex items-center justify-between gap-2 p-2 rounded border">
+              <div>
+                <span className="font-medium">{a.allergen}</span>{" "}
+                <span className={`text-xs px-2 py-0.5 rounded ${sevClass(a.severity)}`}>{t(a.severity as any)}</span>
+                {a.note && <div className="text-xs text-muted-foreground">{a.note}</div>}
+              </div>
+              <Button variant="ghost" size="icon" onClick={() => removeAllergy(a.id)}><Trash2 className="h-4 w-4" /></Button>
+            </div>
+          ))}
+          <form onSubmit={addAllergy} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
+            <div className="md:col-span-2"><Label>{t("allergen")}</Label><Input required value={form.allergen} onChange={(e) => setForm({ ...form, allergen: e.target.value })} /></div>
+            <div>
+              <Label>{t("severity")}</Label>
+              <Select value={form.severity} onValueChange={(v) => setForm({ ...form, severity: v as any })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mild">{t("mild")}</SelectItem>
+                  <SelectItem value="moderate">{t("moderate")}</SelectItem>
+                  <SelectItem value="severe">{t("severe")}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button type="submit">{t("add_allergy")}</Button>
+            <div className="md:col-span-4"><Label>{t("note")}</Label><Input value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} /></div>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
