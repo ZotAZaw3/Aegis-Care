@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole = "admin" | "dentist" | "assistant" | "receptionist" | "lab_technician";
+export type AppRole = "admin" | "dentist" | "assistant" | "receptionist";
 
 type AuthState = {
   user: User | null;
@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", uid);
     if (error) console.error("Failed to load user roles:", error.message);
-    setRoles((data ?? []).map((r: { role: AppRole }) => r.role));
+    setRoles((data ?? []).map((r: { role: string }) => r.role as AppRole));
   };
 
   useEffect(() => {

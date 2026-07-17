@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, UserPlus, ListOrdered, FlaskConical, Shield, ClipboardList, Stethoscope } from "lucide-react";
+import { LayoutDashboard, Users, UserPlus, ListOrdered, Shield, ClipboardList, Stethoscope } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -26,7 +26,6 @@ export function AppSidebar() {
     { title: t("patients"), url: "/patients", icon: Users },
     ...(has("receptionist") ? [{ title: t("check_in"), url: "/checkin", icon: UserPlus }] : []),
     ...(has("assistant") ? [{ title: t("queue"), url: "/queue", icon: ListOrdered }] : []),
-    ...(has("lab_technician") ? [{ title: t("lab"), url: "/lab", icon: FlaskConical }] : []),
     { title: t("follow_ups"), url: "/follow-ups", icon: ClipboardList },
   ];
 

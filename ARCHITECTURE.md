@@ -25,8 +25,15 @@ section). It replaces the earlier pre-booked-appointment model.
 | `receptionist` | Lễ tân | Checks patients in, assigns queue numbers, finalizes visits / inpatient handoff |
 | `assistant` | Trợ lý / Điều dưỡng | Calls patients from the queue |
 | `dentist` | Nha sĩ / Bác sĩ | Examines, orders labs, diagnoses, treats |
-| `lab_technician` | Nhân viên xét nghiệm | Performs and self-checks-off lab orders |
 | `admin` | Quản trị | Full access to everything, incl. role assignment |
+
+There is no dedicated lab-technician role — lab orders (`lab_orders`) are
+completed by whoever holds `assistant`, via a "pending lab orders" section on
+`/queue`, alongside their queue-calling duty. (The `lab_technician` value
+still exists in the `app_role` Postgres enum from an earlier iteration —
+removing an enum value cleanly requires rebuilding the type and touches
+every table/function/RLS policy that references it, so it was left in place,
+unused and unassignable from `/admin`, rather than risk that migration.)
 
 A user's roles live in `user_roles` (one or more rows per user); `is_staff()`
 and `has_role()` are `SECURITY DEFINER` SQL functions used throughout RLS
@@ -96,7 +103,7 @@ flowchart TD
   I --> J
   J --> K{Needs lab test?}
   K -- yes --> L[Lab order created, status = waiting_lab]
-  L --> M[Lab technician performs + self-checks-off]
+  L --> M[Assistant performs + self-checks-off, via /queue]
   M --> N[status = waiting_recall, round += 1]
   K -- no --> O{Another round needed?}
   N --> F
@@ -118,9 +125,8 @@ status` is the enum `visit_status`.
 | Route | Actor | Purpose |
 |---|---|---|
 | `/checkin` | Lễ tân | Check-in (assign number/bed) + finalize/discharge decisions |
-| `/queue` | Điều dưỡng | Call board — normal queue (by number) + emergency/bed queue |
+| `/queue` | Điều dưỡng | Call board (normal + emergency/bed queue) + pending lab orders self-check-off |
 | `/visits/$id` | Bác sĩ | Exam workspace: CRM history, symptom search, lab orders, round progression, finalize, documentation checklist |
-| `/lab` | Nhân viên xét nghiệm | Lab order board, self-check-off |
 | `/dashboard` | all | KPIs, visit-status Kanban, alerts feed, exception log |
 | `/patients`, `/patients/$id` | all | Patient directory, allergies, visit history |
 | `/follow-ups` | all | Recall queue (unchanged concept, repointed to `visit_sessions`) |

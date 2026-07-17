@@ -6,7 +6,6 @@ const roleClass: Record<string, string> = {
   dentist: "bg-success/10 text-success border-success/30",
   assistant: "bg-warning/10 text-warning border-warning/30",
   receptionist: "bg-accent text-accent-foreground border-border",
-  lab_technician: "bg-secondary text-secondary-foreground border-border",
 };
 
 export function RoleBadge({ role, className }: { role: string; className?: string }) {
