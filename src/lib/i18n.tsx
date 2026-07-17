@@ -99,6 +99,38 @@ const dict = {
     add_first_admin_hint: "Tài khoản đầu tiên đăng ký tự động trở thành quản trị viên.",
     already_have_account: "Đã có tài khoản?",
     no_account: "Chưa có tài khoản?",
+    follow_ups: "Theo dõi sau điều trị",
+    follow_up_queue: "Danh sách theo dõi",
+    followup_type: "Loại",
+    call: "Gọi kiểm tra",
+    review: "Tái khám",
+    due_date: "Hạn",
+    contacted: "Đã liên hệ",
+    missed: "Trễ hạn",
+    action: "Hành động",
+    alerts: "Cảnh báo",
+    no_alerts: "Không có cảnh báo",
+    dismiss: "Bỏ qua",
+    exception_log: "Nhật ký ngoại lệ",
+    export_csv: "Xuất CSV",
+    kanban: "Bảng phiên",
+    overdue_followups: "Quá hạn theo dõi",
+    active_sessions: "Phiên đang mở",
+    home: "Trang chủ",
+    reason_category: "Nhóm lý do",
+    patient_refusal: "Bệnh nhân từ chối",
+    equipment_unavailable: "Thiếu thiết bị",
+    clinical_contraindication: "Chống chỉ định lâm sàng",
+    reason_other: "Khác",
+    reason_details: "Chi tiết",
+    submit: "Xác nhận",
+    required_pending_warning: "Vẫn còn hạng mục bắt buộc chưa hoàn tất — hãy đánh dấu xong hoặc ghi ngoại lệ trước khi chuyển giai đoạn.",
+    only_role_can_check: "Chỉ vai trò được giao mới có thể tick mục này.",
+    info: "Thông tin",
+    warning: "Cảnh báo",
+    critical: "Nghiêm trọng",
+    unread: "Chưa xem",
+    followup_overdue_msg: "Theo dõi quá hạn",
   },
   en: {
     app_name: "Dental Compliance",
@@ -196,6 +228,38 @@ const dict = {
     add_first_admin_hint: "The first account to sign up automatically becomes an admin.",
     already_have_account: "Already have an account?",
     no_account: "Don't have an account?",
+    follow_ups: "Follow-ups",
+    follow_up_queue: "Follow-up queue",
+    followup_type: "Type",
+    call: "Check-in call",
+    review: "Review",
+    due_date: "Due",
+    contacted: "Contacted",
+    missed: "Missed",
+    action: "Action",
+    alerts: "Alerts",
+    no_alerts: "No alerts",
+    dismiss: "Dismiss",
+    exception_log: "Exception log",
+    export_csv: "Export CSV",
+    kanban: "Session board",
+    overdue_followups: "Overdue follow-ups",
+    active_sessions: "Active sessions",
+    home: "Home",
+    reason_category: "Reason category",
+    patient_refusal: "Patient refusal",
+    equipment_unavailable: "Equipment unavailable",
+    clinical_contraindication: "Clinical contraindication",
+    reason_other: "Other",
+    reason_details: "Details",
+    submit: "Submit",
+    required_pending_warning: "Required items are still pending — mark them done or log an exception before advancing.",
+    only_role_can_check: "Only the assigned role can check this item.",
+    info: "Info",
+    warning: "Warning",
+    critical: "Critical",
+    unread: "Unread",
+    followup_overdue_msg: "Follow-up overdue",
   },
 } as const;
 
@@ -204,7 +268,7 @@ type Key = keyof typeof dict.vi;
 type Ctx = {
   lang: Lang;
   setLang: (l: Lang) => void;
-  t: (k: Key) => string;
+  t: (k: Key | string) => string;
 };
 
 const I18nCtx = createContext<Ctx | null>(null);
@@ -222,7 +286,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     if (typeof window !== "undefined") localStorage.setItem("lang", l);
   };
 
-  const t = (k: Key) => dict[lang][k] ?? dict.en[k] ?? k;
+  const t = (k: Key | string) =>
+    (dict[lang] as Record<string, string>)[k] ??
+    (dict.en as Record<string, string>)[k] ??
+    (k as string);
 
   return <I18nCtx.Provider value={{ lang, setLang, t }}>{children}</I18nCtx.Provider>;
 }

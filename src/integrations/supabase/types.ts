@@ -14,6 +14,64 @@ export type Database = {
   }
   public: {
     Tables: {
+      alerts: {
+        Row: {
+          created_at: string
+          dismissed_at: string | null
+          dismissed_by: string | null
+          followup_id: string | null
+          id: string
+          message: string
+          session_id: string | null
+          severity: Database["public"]["Enums"]["alert_severity"]
+          target_role: Database["public"]["Enums"]["app_role"] | null
+        }
+        Insert: {
+          created_at?: string
+          dismissed_at?: string | null
+          dismissed_by?: string | null
+          followup_id?: string | null
+          id?: string
+          message: string
+          session_id?: string | null
+          severity?: Database["public"]["Enums"]["alert_severity"]
+          target_role?: Database["public"]["Enums"]["app_role"] | null
+        }
+        Update: {
+          created_at?: string
+          dismissed_at?: string | null
+          dismissed_by?: string | null
+          followup_id?: string | null
+          id?: string
+          message?: string
+          session_id?: string | null
+          severity?: Database["public"]["Enums"]["alert_severity"]
+          target_role?: Database["public"]["Enums"]["app_role"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_dismissed_by_fkey"
+            columns: ["dismissed_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alerts_followup_id_fkey"
+            columns: ["followup_id"]
+            isOneToOne: false
+            referencedRelation: "follow_ups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "alerts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "treatment_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       appointments: {
         Row: {
           created_at: string
@@ -79,6 +137,9 @@ export type Database = {
         Row: {
           completed_at: string | null
           completed_by: string | null
+          exception_category:
+            | Database["public"]["Enums"]["exception_category"]
+            | null
           exception_reason: string | null
           id: string
           rule_id: string
@@ -88,6 +149,9 @@ export type Database = {
         Insert: {
           completed_at?: string | null
           completed_by?: string | null
+          exception_category?:
+            | Database["public"]["Enums"]["exception_category"]
+            | null
           exception_reason?: string | null
           id?: string
           rule_id: string
@@ -97,6 +161,9 @@ export type Database = {
         Update: {
           completed_at?: string | null
           completed_by?: string | null
+          exception_category?:
+            | Database["public"]["Enums"]["exception_category"]
+            | null
           exception_reason?: string | null
           id?: string
           rule_id?: string
@@ -165,6 +232,60 @@ export type Database = {
           trigger_timing?: Database["public"]["Enums"]["checklist_timing"]
         }
         Relationships: []
+      }
+      follow_ups: {
+        Row: {
+          created_at: string
+          day_offset: number
+          due_date: string
+          followup_type: Database["public"]["Enums"]["followup_type"]
+          handled_at: string | null
+          handled_by: string | null
+          id: string
+          notes: string | null
+          session_id: string
+          status: Database["public"]["Enums"]["followup_status"]
+        }
+        Insert: {
+          created_at?: string
+          day_offset: number
+          due_date: string
+          followup_type?: Database["public"]["Enums"]["followup_type"]
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          notes?: string | null
+          session_id: string
+          status?: Database["public"]["Enums"]["followup_status"]
+        }
+        Update: {
+          created_at?: string
+          day_offset?: number
+          due_date?: string
+          followup_type?: Database["public"]["Enums"]["followup_type"]
+          handled_at?: string | null
+          handled_by?: string | null
+          id?: string
+          notes?: string | null
+          session_id?: string
+          status?: Database["public"]["Enums"]["followup_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "follow_ups_handled_by_fkey"
+            columns: ["handled_by"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "follow_ups_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "treatment_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       patient_allergies: {
         Row: {
@@ -338,6 +459,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      escalate_overdue_followups: { Args: never; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -348,6 +470,7 @@ export type Database = {
       is_staff: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
+      alert_severity: "info" | "warning" | "critical"
       allergy_severity: "mild" | "moderate" | "severe"
       app_role: "admin" | "dentist" | "assistant" | "receptionist"
       appointment_status:
@@ -363,6 +486,13 @@ export type Database = {
         | "medication"
       checklist_item_status: "pending" | "done" | "exception"
       checklist_timing: "before" | "during" | "after"
+      exception_category:
+        | "patient_refusal"
+        | "equipment_unavailable"
+        | "clinical_contraindication"
+        | "other"
+      followup_status: "scheduled" | "contacted" | "completed" | "missed"
+      followup_type: "call" | "review"
       procedure_type:
         | "extraction"
         | "root_canal"
@@ -503,6 +633,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      alert_severity: ["info", "warning", "critical"],
       allergy_severity: ["mild", "moderate", "severe"],
       app_role: ["admin", "dentist", "assistant", "receptionist"],
       appointment_status: [
@@ -520,6 +651,14 @@ export const Constants = {
       ],
       checklist_item_status: ["pending", "done", "exception"],
       checklist_timing: ["before", "during", "after"],
+      exception_category: [
+        "patient_refusal",
+        "equipment_unavailable",
+        "clinical_contraindication",
+        "other",
+      ],
+      followup_status: ["scheduled", "contacted", "completed", "missed"],
+      followup_type: ["call", "review"],
       procedure_type: [
         "extraction",
         "root_canal",
