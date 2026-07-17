@@ -21,6 +21,21 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# Secrets — private/service-role keys go in .dev.vars or *.local (ignored below).
+# The tracked .env holds ONLY public VITE_ anon keys. NEVER put a service-role
+# key (bypasses RLS) in .env — it would sync to git + Lovable.
+.env.local
+.env.*.local
+
+# Claude Code local config, hooks, and prompt log
+.claude/settings.local.json
+.claude/hooks/
+.claude/prompt-log.json
+.claude/prompt-log.json.corrupt-*
+
+# Synthea dataset (3.34GB — do not commit)
+synthea-dental-dataset/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
