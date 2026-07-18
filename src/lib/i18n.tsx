@@ -387,6 +387,7 @@ const dict = {
     booking_note: "Ghi chú",
     booking_confirm: "Xác nhận đặt lịch",
     booking_wip_note: "Tính năng đang được phát triển — đây là giao diện xem trước, chưa lưu dữ liệu thật.",
+    dashboard_search_placeholder: "Hỏi trợ lý hoặc tìm kiếm...",
   },
   en: {
     app_name: "Dental Compliance",
@@ -772,6 +773,7 @@ const dict = {
     booking_note: "Note",
     booking_confirm: "Confirm booking",
     booking_wip_note: "This feature is still in development — this is a preview UI, nothing is saved yet.",
+    dashboard_search_placeholder: "Ask the assistant or search...",
   },
 } as const;
 
