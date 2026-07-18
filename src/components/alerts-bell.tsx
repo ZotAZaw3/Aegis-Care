@@ -25,7 +25,9 @@ export function AlertsBell() {
         .limit(20);
       return (data ?? []).filter((a: any) => !a.target_role || roles.includes(a.target_role));
     },
-    refetchInterval: 30000,
+    // No polling here: the realtime subscription below invalidates this
+    // query on every insert/update/delete to `alerts`, so a timed refetch
+    // on top of that was a redundant GET every 30s for every signed-in user.
   });
 
   useEffect(() => {
