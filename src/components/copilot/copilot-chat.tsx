@@ -27,9 +27,8 @@ function TypingDots() {
 
 export function CopilotChat() {
   const { t } = useI18n();
-  const { patientId, patientName, clearPatient } = useCopilot();
+  const { patientId, patientName, clearPatient, open, setOpen, pendingQuery, consumePendingQuery } = useCopilot();
   const { messages, loading, send, reset } = useCopilotChat(patientId);
-  const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -39,6 +38,13 @@ export function CopilotChat() {
     ) as HTMLElement | null;
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, loading, open]);
+
+  // Auto-send a query queued from outside (e.g. the dashboard search bar via askQuestion).
+  useEffect(() => {
+    if (!pendingQuery || !open) return;
+    void send(pendingQuery);
+    consumePendingQuery();
+  }, [pendingQuery, open, send, consumePendingQuery]);
 
   const suggestions = [
     ...(patientId ? [t("copilot_suggest_patient")] : []),
