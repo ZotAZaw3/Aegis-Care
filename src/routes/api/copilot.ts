@@ -43,7 +43,7 @@ async function handlePost({ request }: { request: Request }): Promise<Response> 
   const { data: userData } = await supabase.auth.getUser();
   if (!userData?.user) return json({ error: "unauthorized" }, 401);
 
-  let body: { messages?: IncomingMessage[]; patient_id?: string };
+  let body: { messages?: IncomingMessage[]; patient_id?: string; patients?: { id: string; name: string }[] };
   try {
     body = await request.json();
   } catch {
@@ -56,12 +56,18 @@ async function handlePost({ request }: { request: Request }): Promise<Response> 
 
   const openai = createOpenAI({ apiKey: env.openaiApiKey });
   const citations: Citation[] = [];
-  const patientId = typeof body.patient_id === "string" ? body.patient_id : undefined;
+  // Ghim nhiều BN (trang Trợ lý) hoặc 1 BN đang mở (floating). Default tool = 1 BN nếu chỉ có 1.
+  const pinned = Array.isArray(body.patients) ? body.patients.filter((p) => p?.id && p?.name) : [];
+  const patientId =
+    typeof body.patient_id === "string" ? body.patient_id : pinned.length === 1 ? pinned[0].id : undefined;
 
-  // Nhét BN đang mở vào system context để model biết ngữ cảnh (tools vẫn tự resolve).
-  const system = patientId
-    ? `${SYSTEM_PROMPT}\n\nNGỮ CẢNH: nhân viên đang mở hồ sơ bệnh nhân có patient_id=${patientId}. Khi cần dữ liệu BN, gọi tool với đúng patient_id này.`
-    : SYSTEM_PROMPT;
+  let system = SYSTEM_PROMPT;
+  if (pinned.length > 1) {
+    const list = pinned.map((p) => `- ${p.name} (patient_id=${p.id})`).join("\n");
+    system += `\n\nNGỮ CẢNH: nhân viên đang xét NHIỀU bệnh nhân cùng lúc:\n${list}\nKhi cần dữ liệu của một BN, gọi tool với ĐÚNG patient_id tương ứng; lặp tool cho từng BN nếu câu hỏi liên quan nhiều người. Trình bày theo từng bệnh nhân.`;
+  } else if (patientId) {
+    system += `\n\nNGỮ CẢNH: nhân viên đang mở hồ sơ bệnh nhân có patient_id=${patientId}. Khi cần dữ liệu BN, gọi tool với đúng patient_id này.`;
+  }
 
   try {
     const result = await generateText({
@@ -70,7 +76,7 @@ async function handlePost({ request }: { request: Request }): Promise<Response> 
       messages,
       temperature: 0,
       tools: buildTools({ supabase, openai, patientId, citations }),
-      stopWhen: stepCountIs(5),
+      stopWhen: stepCountIs(pinned.length > 1 ? 12 : 5),
     });
 
     const toolCalls = result.steps.flatMap((s) =>

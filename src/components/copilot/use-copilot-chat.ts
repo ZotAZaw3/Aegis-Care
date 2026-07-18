@@ -13,7 +13,7 @@ type CopilotResponse = {
 let idCounter = 0;
 const nextId = () => `m${Date.now()}-${idCounter++}`;
 
-export function useCopilotChat(patientId?: string) {
+export function useCopilotChat(patientId?: string, patients?: { id: string; name: string }[]) {
   const { t } = useI18n();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
@@ -53,6 +53,7 @@ export function useCopilotChat(patientId?: string) {
           body: JSON.stringify({
             messages: history.map((m) => ({ role: m.role, content: m.content })),
             ...(patientId ? { patient_id: patientId } : {}),
+            ...(patients && patients.length ? { patients } : {}),
           }),
         });
 
@@ -83,7 +84,7 @@ export function useCopilotChat(patientId?: string) {
         setLoading(false);
       }
     },
-    [messages, loading, patientId, t],
+    [messages, loading, patientId, patients, t],
   );
 
   return { messages, loading, send, reset };

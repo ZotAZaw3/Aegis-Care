@@ -398,6 +398,14 @@ const dict = {
     copilot_suggest_patient: "Bệnh nhân này cần lưu ý gì trước thủ thuật?",
     copilot_suggest_consent: "Quy định nào bắt buộc cam kết trước thủ thuật?",
     copilot_suggest_pending: "Có y lệnh nào đang treo không?",
+    // Trang Trợ lý AI (đa bệnh nhân)
+    nav_assistant: "Trợ lý AI",
+    assistant_pin_search: "Tìm bệnh nhân để ghim…",
+    assistant_pin_remove: "Bỏ ghim",
+    assistant_pin_empty: "Chưa ghim bệnh nhân nào. Tìm và thêm để tra cứu nhiều người một lượt.",
+    assistant_empty_hint: "Ghim một hoặc nhiều bệnh nhân ở trên, rồi hỏi để tra cứu hồ sơ, y lệnh treo hay quy định — trợ lý trả lời dựa trên dữ liệu, có trích dẫn.",
+    assistant_placeholder: "Hỏi về các bệnh nhân đã ghim hoặc quy định…",
+    assistant_suggest_compare: "So sánh tình trạng của các bệnh nhân đã ghim.",
     // Home (chat-first landing)
     home_greeting: "Chào bạn",
     home_all_clear: "Không có việc nào cần xử lý ngay bây giờ.",
@@ -865,6 +873,14 @@ const dict = {
     copilot_suggest_patient: "What should I watch for before this patient's procedure?",
     copilot_suggest_consent: "Which regulation requires consent before a procedure?",
     copilot_suggest_pending: "Are there any hanging orders?",
+    // AI Assistant page (multi-patient)
+    nav_assistant: "AI Assistant",
+    assistant_pin_search: "Search patients to pin…",
+    assistant_pin_remove: "Unpin",
+    assistant_pin_empty: "No patients pinned yet. Search and add several to look them up at once.",
+    assistant_empty_hint: "Pin one or more patients above, then ask about their records, hanging orders, or regulations — the assistant answers from data, with citations.",
+    assistant_placeholder: "Ask about the pinned patients or regulations…",
+    assistant_suggest_compare: "Compare the status of the pinned patients.",
     // Home (chat-first landing)
     home_greeting: "Hello",
     home_all_clear: "Nothing needs your attention right now.",

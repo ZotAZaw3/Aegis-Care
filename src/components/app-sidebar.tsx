@@ -1,7 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard, Users, UserPlus, Shield, ClipboardList, Database,
-  Stethoscope, ClipboardCheck, FlaskConical,
+  Stethoscope, ClipboardCheck, FlaskConical, Sparkles,
 } from "lucide-react";
 import {
   Sidebar,
@@ -33,6 +33,7 @@ export function AppSidebar() {
       ? [{ title: t("reception_management"), url: "/reception", icon: UserPlus }]
       : []),
     { title: t("patients"), url: "/patients", icon: Users },
+    { title: t("nav_assistant"), url: "/assistant", icon: Sparkles },
     ...(has("dentist", "receptionist")
       ? [{ title: t("follow_ups"), url: "/follow-ups", icon: ClipboardList }]
       : []),

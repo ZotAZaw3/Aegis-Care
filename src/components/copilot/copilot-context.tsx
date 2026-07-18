@@ -1,10 +1,17 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
+type PinnedPatient = { id: string; name: string };
+
 type CopilotContextValue = {
   patientId?: string;
   patientName?: string;
   setPatient: (id: string, name: string) => void;
   clearPatient: () => void;
+  // Ghim nhiều BN cho trang Trợ lý (tra cứu nhiều người 1 lượt).
+  pinnedPatients: PinnedPatient[];
+  addPinned: (id: string, name: string) => void;
+  removePinned: (id: string) => void;
+  clearPinned: () => void;
   open: boolean;
   setOpen: (open: boolean) => void;
   pendingQuery: string | null;
@@ -16,6 +23,7 @@ const CopilotCtx = createContext<CopilotContextValue | null>(null);
 
 export function CopilotProvider({ children }: { children: ReactNode }) {
   const [patient, setPatientState] = useState<{ id: string; name: string } | null>(null);
+  const [pinnedPatients, setPinned] = useState<PinnedPatient[]>([]);
   const [open, setOpen] = useState(false);
   const [pendingQuery, setPendingQuery] = useState<string | null>(null);
 
@@ -26,6 +34,14 @@ export function CopilotProvider({ children }: { children: ReactNode }) {
   const clearPatient = useCallback(() => {
     setPatientState(null);
   }, []);
+
+  const addPinned = useCallback((id: string, name: string) => {
+    setPinned((prev) => (prev.some((p) => p.id === id) ? prev : [...prev, { id, name }]));
+  }, []);
+  const removePinned = useCallback((id: string) => {
+    setPinned((prev) => prev.filter((p) => p.id !== id));
+  }, []);
+  const clearPinned = useCallback(() => setPinned([]), []);
 
   // Opens the copilot panel and queues a query for it to auto-send (e.g. from the dashboard search bar).
   const askQuestion = useCallback((text: string) => {
@@ -41,13 +57,17 @@ export function CopilotProvider({ children }: { children: ReactNode }) {
       patientName: patient?.name,
       setPatient,
       clearPatient,
+      pinnedPatients,
+      addPinned,
+      removePinned,
+      clearPinned,
       open,
       setOpen,
       pendingQuery,
       askQuestion,
       consumePendingQuery,
     }),
-    [patient, setPatient, clearPatient, open, pendingQuery, askQuestion, consumePendingQuery],
+    [patient, setPatient, clearPatient, pinnedPatients, addPinned, removePinned, clearPinned, open, pendingQuery, askQuestion, consumePendingQuery],
   );
 
   return <CopilotCtx.Provider value={value}>{children}</CopilotCtx.Provider>;
