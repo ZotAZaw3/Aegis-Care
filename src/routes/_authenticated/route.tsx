@@ -10,7 +10,6 @@ import { LanguageToggle } from "@/components/language-toggle";
 import { AlertsBell } from "@/components/alerts-bell";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { CopilotProvider } from "@/components/copilot/copilot-context";
-import { CopilotChat } from "@/components/copilot/copilot-chat";
 import { LogOut, Stethoscope } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -82,7 +81,7 @@ function AuthedLayout() {
             </main>
           </div>
         </div>
-        {roles.length > 0 && <CopilotChat />}
+        {/* Bong bóng chat nổi đã bỏ — thay bằng trang Trợ lý AI (/assistant). */}
       </SidebarProvider>
     </CopilotProvider>
   );
