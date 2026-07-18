@@ -5,10 +5,24 @@ import { supabase } from "@/integrations/supabase/client";
 export interface SafetyAllergy { label: string; severity: string | null; note: string | null; source: string | null; }
 export interface SafetyMedication { name: string; rxnorm: string | null; }
 export interface SafetyFlag { label_vi: string | null; label: string; severity_hint: string | null; matched_by: string | null; }
+export interface ObservationFact {
+  loinc_code: string;
+  label_vi: string | null;
+  category: string | null;
+  unit: string | null;
+  value_num: number | null;
+  value_text: string | null;
+  observed_at: string | null;
+  ref_low: number | null;
+  ref_high: number | null;
+  related_flag: string | null;
+  relevance_vi: string | null;
+}
 export interface SafetyPanel {
   allergies: SafetyAllergy[];
   medications: SafetyMedication[];
   systemic_flags: SafetyFlag[];
+  observations: ObservationFact[];
 }
 
 export interface CrmFollowup { id: string; title: string; due_at: string | null; status: string | null; }

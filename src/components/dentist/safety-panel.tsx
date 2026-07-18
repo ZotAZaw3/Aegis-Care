@@ -1,12 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Pill, Activity, ShieldAlert } from "lucide-react";
+import { AlertTriangle, Pill, Activity, ShieldAlert, FlaskConical } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ordersDb, type SafetyPanel } from "@/lib/orders";
+import { ordersDb, type SafetyPanel, type ObservationFact } from "@/lib/orders";
 
 function isSevere(s: string | null) {
   return s ? ["severe", "high", "critical"].includes(s.toLowerCase()) : false;
+}
+
+// Trình bày SỰ THẬT: value + đơn vị (+ngày, +tham chiếu KB). KHÔNG phán bất thường, KHÔNG cờ H/L.
+function fmtValue(o: ObservationFact) {
+  const v = o.value_num != null ? String(o.value_num) : (o.value_text ?? "—");
+  return o.unit ? `${v} ${o.unit}` : v;
+}
+function fmtRef(refWord: string, lo: number | null, hi: number | null) {
+  if (lo != null && hi != null) return `${refWord} ${lo}–${hi}`;
+  if (hi != null) return `${refWord} ≤ ${hi}`;
+  if (lo != null) return `${refWord} ≥ ${lo}`;
+  return "";
 }
 
 function Group({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
@@ -34,7 +46,7 @@ export function SafetyPanel({ patientId }: { patientId: string }) {
     queryFn: async () => {
       const { data, error } = await ordersDb.rpc("get_safety_panel", { p_patient_id: patientId });
       if (error) throw error;
-      return (data as SafetyPanel) ?? { allergies: [], medications: [], systemic_flags: [] };
+      return (data as SafetyPanel) ?? { allergies: [], medications: [], systemic_flags: [], observations: [] };
     },
   });
 
@@ -123,6 +135,37 @@ export function SafetyPanel({ patientId }: { patientId: string }) {
               <Empty label={none} />
             )}
           </Group>
+
+          {data && data.observations.length > 0 && (
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <FlaskConical className="h-3.5 w-3.5" />
+                {t("lab_results")}
+              </div>
+              <div className="space-y-1">
+                {data.observations.map((o) => (
+                  <div
+                    key={o.loinc_code}
+                    className="flex items-start justify-between gap-2 rounded-md border border-border bg-background px-2 py-1.5 text-sm"
+                  >
+                    <span className="min-w-0">
+                      <span className="font-medium">{o.label_vi ?? o.loinc_code}</span>{" "}
+                      <span className="tabular-nums">{fmtValue(o)}</span>
+                      {o.relevance_vi && (
+                        <span className="block text-[11px] text-muted-foreground">{o.relevance_vi}</span>
+                      )}
+                    </span>
+                    <span className="shrink-0 text-right text-[11px] text-muted-foreground">
+                      {o.observed_at && <span className="block tabular-nums">{o.observed_at}</span>}
+                      {fmtRef(t("lab_ref"), o.ref_low, o.ref_high) && (
+                        <span className="block">{fmtRef(t("lab_ref"), o.ref_low, o.ref_high)}</span>
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </section>

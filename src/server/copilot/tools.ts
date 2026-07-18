@@ -1,4 +1,4 @@
-// 6 tool tra cứu cho copilot. Mỗi execute gọi supabase (RLS theo JWT user) — CHỈ ĐỌC.
+// 8 tool tra cứu cho copilot. Mỗi execute gọi supabase (RLS theo JWT user) — CHỈ ĐỌC.
 // kb_search embed query bằng OpenAI trước rồi rpc kb_search (hybrid RRF). Citations của
 // kb_search được push vào mảng dùng chung để route gom trả về (minh bạch nguồn pháp lý).
 import { tool, embed } from "ai";
@@ -114,6 +114,25 @@ export function buildTools({ supabase, openai, patientId, citations }: BuildTool
         const { data, error } = await supabase.rpc("get_crm_recall", { p_patient_id: pid });
         if (error) return { error: error.message };
         return { crm: data };
+      },
+    }),
+
+    patient_labs: tool({
+      description:
+        "Lấy KẾT QUẢ XÉT NGHIỆM đã ghi của bệnh nhân (INR, HbA1c, tiểu cầu, huyết áp, đường huyết, hút thuốc, WBC, creatinine). Trả GIÁ TRỊ + ĐƠN VỊ + NGÀY + khoảng tham chiếu KB. Đây là dữ kiện đã ghi — chỉ thuật lại số + ngày, KHÔNG diễn giải 'bất thường/cao/thấp', KHÔNG khuyến nghị.",
+      inputSchema: z.object({
+        patient_id: z.string().optional().describe("UUID bệnh nhân; bỏ trống nếu đã có BN đang mở."),
+        codes: z.array(z.string()).optional().describe("Mã LOINC lọc (vd ['6301-6'] cho INR); bỏ trống = tất cả."),
+      }),
+      execute: async ({ patient_id, codes }) => {
+        const pid = resolvePatient(patient_id, patientId);
+        if (!pid) return { error: "Chưa xác định bệnh nhân." };
+        const { data, error } = await supabase.rpc("get_observation_history", {
+          p_patient_id: pid,
+          p_codes: codes ?? null,
+        });
+        if (error) return { error: error.message };
+        return { labs: data };
       },
     }),
 

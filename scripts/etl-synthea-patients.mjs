@@ -96,8 +96,25 @@ async function pass1Select() {
   return selected;
 }
 
+// Load mã whitelist observation từ DB (chỉ nạp lab curated, bỏ vitals/khảo sát vô quan).
+async function loadObsCodes() {
+  const codes = new Set();
+  let from = 0;
+  for (;;) {
+    const { data, error } = await supabase
+      .from("emr_observation_whitelist")
+      .select("loinc_code")
+      .range(from, from + 999);
+    if (error) throw error;
+    for (const r of data) codes.add(String(r.loinc_code));
+    if (data.length < 1000) break;
+    from += 1000;
+  }
+  return codes;
+}
+
 // --- PASS 2: collect rows for selected patients ---
-async function pass2Collect(sel) {
+async function pass2Collect(sel, obsCodes) {
   const rows = {
     patients: [],
     emr_patients: [],
@@ -110,6 +127,7 @@ async function pass2Collect(sel) {
     emr_imaging_studies: [],
     emr_careplans: [],
     emr_devices: [],
+    emr_observations: [],
   };
   const encIds = new Set();
   const streamCount = async (file, onRow) => {
@@ -241,6 +259,24 @@ async function pass2Collect(sel) {
       device_start: dateOnly(r[0]),
     });
   });
+  // observations: DATE,PATIENT,ENCOUNTER,CATEGORY,CODE,DESCRIPTION,VALUE,UNITS,TYPE.
+  // Chỉ nạp dòng khớp whitelist (lab curated). TYPE=numeric→value_num, else value_text.
+  await streamCount("observations.csv", (r) => {
+    if (!sel.has(r[1]) || !obsCodes.has(r[4])) return;
+    const isNum = String(r[8]).toLowerCase() === "numeric";
+    const num = isNum ? parseFloat(r[6]) : NaN;
+    rows.emr_observations.push({
+      patient_id: r[1],
+      encounter_id: enc(r[2]),
+      loinc_code: nn(r[4]),
+      description: nn(r[5]),
+      value_num: Number.isFinite(num) ? num : null,
+      value_text: isNum ? null : nn(r[6]),
+      unit: nn(r[7]),
+      observed_at: ts(r[0]),
+      source: "synthea",
+    });
+  });
   return rows;
 }
 
@@ -278,6 +314,7 @@ const CHILD_TABLES = [
   "emr_imaging_studies",
   "emr_careplans",
   "emr_devices",
+  "emr_observations",
   "patient_allergies",
 ];
 
@@ -343,7 +380,9 @@ async function main() {
     sel = await pass1Select();
   }
   console.log("PASS 2: collecting rows...");
-  const rows = await pass2Collect(sel);
+  const obsCodes = await loadObsCodes();
+  console.log(`  observation whitelist codes: ${obsCodes.size}`);
+  const rows = await pass2Collect(sel, obsCodes);
   const ids = rows.patients.map((p) => p.id);
   console.log(`  matched patients in CSV: ${ids.length}`);
   console.log("UPSERT parents (patients / emr_patients / emr_encounters)...");

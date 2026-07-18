@@ -430,6 +430,8 @@ const dict = {
     ops_report_llm_unavailable: "Không có phần diễn giải (chỉ số liệu). Xem thẻ KPI để kiểm chứng.",
     ops_report_no_text: "chỉ số liệu",
     ops_forbidden: "Chỉ quản trị viên xem được số vận hành.",
+    lab_results: "Kết quả xét nghiệm",
+    lab_ref: "tham chiếu",
   },
   en: {
     app_name: "Dental Compliance",
@@ -858,6 +860,8 @@ const dict = {
     ops_report_llm_unavailable: "No narrative available (metrics only). Check the KPI cards to verify.",
     ops_report_no_text: "metrics only",
     ops_forbidden: "Only admins can view operations metrics.",
+    lab_results: "Lab results",
+    lab_ref: "reference",
   },
 } as const;
 

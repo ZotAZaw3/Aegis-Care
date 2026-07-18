@@ -1,7 +1,7 @@
 // Kiểu dữ liệu Compliance Judge (dùng chung server + client).
 // hard_findings = Lớp A tất định (thẩm quyền). advisories = Lớp B RAG (phải người kiểm).
 
-export type HardFindingType = "missing_mandatory" | "consent_missing" | "safety_flag";
+export type HardFindingType = "missing_mandatory" | "consent_missing" | "safety_flag" | "observation_fact";
 export type Severity = "high" | "medium" | "info";
 
 export interface HardFinding {
