@@ -29,6 +29,12 @@ export interface HomeSuggestion {
   meta: string;
   roleLabel: string;
   isNew?: boolean;
+  /** Shown as a stat-tile badge on the card; omitted for suggestions with no natural count. */
+  count?: number;
+  /** Canned conversational lines shown in the thread step before the redirect chip. */
+  userLine: string;
+  assistantLine: string;
+  chipLabel: string;
   to?: { to: string; params?: Record<string, string> };
   openBooking?: boolean;
 }
@@ -245,9 +251,17 @@ export function useHomeSuggestions() {
         id: "dentist-pending-review",
         icon: Inbox,
         severity: "none",
+        count: n,
         text: bi(lang, `${n} y lệnh đang chờ bạn duyệt`, `${n} orders awaiting your review`),
         meta: bi(lang, "Từ hàng chờ duyệt", "From the review queue"),
         roleLabel: roleLabel("dentist"),
+        userLine: bi(lang, `Cho tôi xem ${n} y lệnh đang chờ duyệt`, `Show me the ${n} orders awaiting review`),
+        assistantLine: bi(
+          lang,
+          `Có ${n} y lệnh đã hoàn tất, đang chờ bạn duyệt để đóng.`,
+          `${n} orders are completed and waiting for your review to close them out.`,
+        ),
+        chipLabel: bi(lang, "Mở hàng chờ duyệt", "Open the review queue"),
         to: { to: "/visits/$id", params: { id: pendingReview.data[0].visit_session_id } },
       });
     }
@@ -258,9 +272,17 @@ export function useHomeSuggestions() {
         id: "dentist-violations",
         icon: AlertTriangle,
         severity: "critical",
+        count: n,
         text: bi(lang, `${n} y lệnh quá hạn / thiếu consent`, `${n} orders overdue or missing consent`),
         meta: bi(lang, "Cần xử lý sớm", "Needs attention soon"),
         roleLabel: roleLabel("dentist"),
+        userLine: bi(lang, "Có y lệnh nào đang vi phạm không?", "Are any of my orders in violation?"),
+        assistantLine: bi(
+          lang,
+          `${n} y lệnh đang vi phạm — quá hạn hoặc thiếu cam kết đồng thuận. Cần xử lý sớm.`,
+          `${n} orders are in violation — overdue or missing consent. These need attention soon.`,
+        ),
+        chipLabel: bi(lang, "Xem chi tiết vi phạm", "View the violation details"),
         to: { to: "/visits/$id", params: { id: violationsMine.data[0].visit_session_id } },
       });
     }
@@ -275,43 +297,77 @@ export function useHomeSuggestions() {
         text: bi(lang, `${name} đang chờ khám — tạo y lệnh?`, `${name} is in exam — draft orders?`),
         meta: bi(lang, "Đang khám", "In exam"),
         roleLabel: roleLabel("dentist"),
+        userLine: bi(lang, `Tạo y lệnh cho ${name}`, `Draft orders for ${name}`),
+        assistantLine: bi(
+          lang,
+          `${name} đang ở phòng khám, chưa có y lệnh nào cho phiên này. Đây là nháp gợi ý theo loại thủ thuật đã ghi nhận.`,
+          `${name} is currently in exam with no orders drafted yet for this visit. Here's a suggested draft based on the recorded procedure type.`,
+        ),
+        chipLabel: bi(lang, "Mở nháp y lệnh", "Open the order draft"),
         to: { to: "/visits/$id", params: { id: inExamCase.data.id } },
       });
     }
 
     if (isReceptionLike && (waiting.data ?? 0) > 0) {
+      const n = waiting.data ?? 0;
       list.push({
         id: "waiting",
         icon: Users,
         severity: "none",
-        text: bi(lang, `${waiting.data} bệnh nhân đang chờ check-in xử lý`, `${waiting.data} patients waiting to be seen`),
+        count: n,
+        text: bi(lang, `${n} bệnh nhân đang chờ check-in xử lý`, `${n} patients waiting to be seen`),
         meta: bi(lang, "Hàng đợi walk-in", "Walk-in queue"),
         roleLabel: roleLabel(isReceptionist ? "receptionist" : "assistant"),
+        userLine: bi(lang, "Cho tôi xem hàng chờ hiện tại", "Show me the current queue"),
+        assistantLine: bi(lang, `${n} bệnh nhân đang ở trạng thái chờ.`, `${n} patients are currently waiting.`),
+        chipLabel: bi(lang, "Mở bảng tiếp đón", "Open the reception board"),
         to: { to: "/reception" },
       });
     }
 
     if (isReceptionLike && (consent.data ?? 0) > 0) {
+      const n = consent.data ?? 0;
       list.push({
         id: "consent",
         icon: FileSignature,
         severity: "warning",
-        text: bi(lang, `${consent.data} phiếu đồng thuận chờ ký`, `${consent.data} consent forms awaiting signature`),
+        count: n,
+        text: bi(lang, `${n} phiếu đồng thuận chờ ký`, `${n} consent forms awaiting signature`),
         meta: bi(lang, "Trước khi vào thủ thuật", "Before the procedure"),
         roleLabel: roleLabel(isReceptionist ? "receptionist" : "assistant"),
+        userLine: bi(lang, "Có phiếu đồng thuận nào cần ký không?", "Any consent forms that need signing?"),
+        assistantLine: bi(
+          lang,
+          `${n} phiếu đang chờ ký trước khi vào thủ thuật.`,
+          `${n} forms are waiting to be signed before the procedure.`,
+        ),
+        chipLabel: bi(lang, "Mở phiếu đồng thuận", "Open the consent queue"),
         to: { to: "/reception" },
       });
     }
 
     if (isReceptionist && recall.data && recall.data.total > 0) {
-      const overdueSuffix = recall.data.overdue > 0 ? bi(lang, ` (${recall.data.overdue} quá hạn)`, ` (${recall.data.overdue} overdue)`) : "";
+      const overdueSuffixVi = recall.data.overdue > 0 ? ` (${recall.data.overdue} quá hạn)` : "";
+      const overdueSuffixEn = recall.data.overdue > 0 ? ` (${recall.data.overdue} overdue)` : "";
       list.push({
         id: "recall",
         icon: PhoneCall,
         severity: recall.data.overdue > 0 ? "warning" : "none",
-        text: bi(lang, `${recall.data.total} bệnh nhân cần gọi nhắc tái khám${overdueSuffix}`, `${recall.data.total} patients need a recall call${overdueSuffix}`),
+        count: recall.data.total,
+        text: bi(
+          lang,
+          `${recall.data.total} bệnh nhân cần gọi nhắc tái khám${overdueSuffixVi}`,
+          `${recall.data.total} patients need a recall call${overdueSuffixEn}`,
+        ),
         meta: bi(lang, "Hàng chờ tái khám", "Recall queue"),
         roleLabel: roleLabel("receptionist"),
+        userLine: bi(lang, "Ai cần gọi nhắc tái khám hôm nay?", "Who needs a recall call today?"),
+        assistantLine: bi(
+          lang,
+          `${recall.data.total} bệnh nhân trong hàng chờ tái khám${overdueSuffixVi}.`,
+          `${recall.data.total} patients are in the recall queue${overdueSuffixEn}.`,
+        ),
+        chipLabel: bi(lang, "Mở hàng chờ tái khám", "Open the recall queue"),
         to: { to: "/follow-ups" },
       });
     }
@@ -325,6 +381,13 @@ export function useHomeSuggestions() {
         meta: bi(lang, "Tính năng mới", "New feature"),
         roleLabel: roleLabel("receptionist"),
         isNew: true,
+        userLine: bi(lang, "Đặt lịch hẹn cho bệnh nhân mới", "Book an appointment for a new patient"),
+        assistantLine: bi(
+          lang,
+          "Đây là giao diện đặt lịch đang thiết kế — chọn bệnh nhân, ngày và khung giờ trống bên dưới.",
+          "Here's the appointment-booking UI in progress — pick a patient, date, and open slot below.",
+        ),
+        chipLabel: bi(lang, "Mở form đặt lịch", "Open the booking form"),
         openBooking: true,
       });
     }
@@ -339,6 +402,13 @@ export function useHomeSuggestions() {
         text: bi(lang, `Chuẩn bị hồ sơ cho ca khám tiếp theo — ${name}`, `Prep the chart for the next patient — ${name}`),
         meta: bi(lang, "Ca tiếp theo", "Next up"),
         roleLabel: roleLabel("assistant"),
+        userLine: bi(lang, `Chuẩn bị hồ sơ cho ${name}`, `Prep the chart for ${name}`),
+        assistantLine: bi(
+          lang,
+          `${name} là ca tiếp theo. Đây là hồ sơ và lưu ý an toàn trước khi vào phòng khám.`,
+          `${name} is up next. Here's their chart and safety notes before they go into the room.`,
+        ),
+        chipLabel: bi(lang, "Mở hồ sơ bệnh nhân", "Open the patient chart"),
         to: { to: "/patients/$id", params: { id: nextPatient.data.patient_id } },
       });
     }
@@ -355,6 +425,13 @@ export function useHomeSuggestions() {
         ),
         meta: bi(lang, "Toàn phòng khám", "Clinic-wide"),
         roleLabel: roleLabel("admin"),
+        userLine: bi(lang, "Tình hình các ca đang mở thế nào?", "What's the status of open cases?"),
+        assistantLine: bi(
+          lang,
+          `${openCases.data.sessions} ca đang mở toàn phòng khám, ${openCases.data.hanging} y lệnh đang treo.`,
+          `${openCases.data.sessions} cases are open clinic-wide, with ${openCases.data.hanging} orders hanging.`,
+        ),
+        chipLabel: bi(lang, "Mở ca cần chú ý", "Open the case that needs attention"),
         to: { to: "/visits/$id", params: { id: openCases.data.topSessionId } },
       });
     }
@@ -365,21 +442,38 @@ export function useHomeSuggestions() {
         id: "admin-violations",
         icon: AlertTriangle,
         severity: "critical",
+        count: n,
         text: bi(lang, `${n} vi phạm quy trình toàn phòng khám cần xử lý`, `${n} process violations across the clinic`),
         meta: bi(lang, "Quá hạn / thiếu consent", "Overdue / missing consent"),
         roleLabel: roleLabel("admin"),
+        userLine: bi(lang, "Có bao nhiêu vi phạm quy trình đang mở?", "How many open process violations are there?"),
+        assistantLine: bi(
+          lang,
+          `${n} vi phạm đang mở toàn phòng khám — quá hạn hoặc thiếu consent. Cần xử lý.`,
+          `${n} violations are open clinic-wide — overdue or missing consent. These need handling.`,
+        ),
+        chipLabel: bi(lang, "Xem danh sách vi phạm", "View the violation list"),
         to: { to: "/visits/$id", params: { id: violationsAll.data[0].visit_session_id } },
       });
     }
 
     if (isAdmin && (staffWithoutRole.data ?? 0) > 0) {
+      const n = staffWithoutRole.data ?? 0;
       list.push({
         id: "admin-staff-role",
         icon: ShieldAlert,
         severity: "warning",
-        text: bi(lang, `${staffWithoutRole.data} nhân viên chưa được gán vai trò`, `${staffWithoutRole.data} staff members have no assigned role`),
+        count: n,
+        text: bi(lang, `${n} nhân viên chưa được gán vai trò`, `${n} staff members have no assigned role`),
         meta: bi(lang, "Quản lý nhân sự", "Staff management"),
         roleLabel: roleLabel("admin"),
+        userLine: bi(lang, "Nhân viên nào chưa được gán vai trò?", "Which staff members have no role assigned?"),
+        assistantLine: bi(
+          lang,
+          `${n} tài khoản nhân viên chưa có vai trò — cần gán trước khi họ dùng được các chức năng nghiệp vụ.`,
+          `${n} staff accounts have no role yet — they need one assigned before they can use the operational features.`,
+        ),
+        chipLabel: bi(lang, "Mở quản lý nhân sự", "Open staff management"),
         to: { to: "/admin" },
       });
     }

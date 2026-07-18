@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,7 +15,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
 }
 
-export function BookingDialog({ open, onOpenChange }: Props) {
+export function BookingSheet({ open, onOpenChange }: Props) {
   const { t } = useI18n();
   const [slot, setSlot] = useState(SLOTS[0]);
 
@@ -25,12 +25,12 @@ export function BookingDialog({ open, onOpenChange }: Props) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{t("booking_dialog_title")}</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-3">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent side="right" className="w-full sm:max-w-md">
+        <SheetHeader>
+          <SheetTitle>{t("booking_dialog_title")}</SheetTitle>
+        </SheetHeader>
+        <div className="space-y-3 pt-2">
           <div className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs font-medium text-warning">
             {t("booking_wip_note")}
           </div>
@@ -68,7 +68,7 @@ export function BookingDialog({ open, onOpenChange }: Props) {
             {t("booking_confirm")}
           </Button>
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   );
 }

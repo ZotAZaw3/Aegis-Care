@@ -3,16 +3,31 @@ import { useAuth } from "@/lib/auth";
 import { useI18n } from "@/lib/i18n";
 import { DashboardSearchBar } from "@/components/manager/dashboard-search-bar";
 import { SuggestionRail } from "./suggestion-rail";
-import { BookingDialog } from "./booking-dialog";
-import { useHomeSuggestions } from "./use-home-suggestions";
+import { ThreadView } from "./thread-view";
+import { BookingSheet } from "./booking-sheet";
+import { useHomeSuggestions, type HomeSuggestion } from "./use-home-suggestions";
 
 export function CopilotHome() {
   const { t, lang } = useI18n();
   const { roles } = useAuth();
   const { all } = useHomeSuggestions();
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [activeSuggestion, setActiveSuggestion] = useState<HomeSuggestion | null>(null);
 
   const roleLabels = roles.map((r) => t(r === "admin" ? "admin_role" : r));
+
+  if (activeSuggestion) {
+    return (
+      <>
+        <ThreadView
+          suggestion={activeSuggestion}
+          onBack={() => setActiveSuggestion(null)}
+          onOpenBooking={() => setBookingOpen(true)}
+        />
+        <BookingSheet open={bookingOpen} onOpenChange={setBookingOpen} />
+      </>
+    );
+  }
 
   return (
     <div className="mx-auto flex min-h-[60vh] max-w-3xl flex-col items-center justify-center gap-6 py-8">
@@ -37,13 +52,13 @@ export function CopilotHome() {
         </p>
       </div>
 
-      <SuggestionRail suggestions={all} onOpenBooking={() => setBookingOpen(true)} />
+      <SuggestionRail suggestions={all} onSelect={setActiveSuggestion} />
 
       <div className="w-full max-w-2xl">
         <DashboardSearchBar />
       </div>
 
-      <BookingDialog open={bookingOpen} onOpenChange={setBookingOpen} />
+      <BookingSheet open={bookingOpen} onOpenChange={setBookingOpen} />
     </div>
   );
 }

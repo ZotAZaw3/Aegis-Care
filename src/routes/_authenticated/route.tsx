@@ -1,4 +1,4 @@
-import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Navigate, Outlet, useRouterState } from "@tanstack/react-router";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { useAuth } from "@/lib/auth";
@@ -19,6 +19,9 @@ export const Route = createFileRoute("/_authenticated")({
 function AuthedLayout() {
   const { user, loading, roles, signOut } = useAuth();
   const { t } = useI18n();
+  const pathname = useRouterState({ select: (r) => r.location.pathname });
+  // The home screen is itself the chat surface — the floating copilot bubble would be redundant there.
+  const isHome = pathname === "/dashboard";
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">…</div>;
   if (!user) return <Navigate to="/auth" replace />;
@@ -65,7 +68,7 @@ function AuthedLayout() {
           </main>
         </div>
       </div>
-      {roles.length > 0 && <CopilotChat />}
+      {roles.length > 0 && !isHome && <CopilotChat />}
     </SidebarProvider>
     </CopilotProvider>
   );

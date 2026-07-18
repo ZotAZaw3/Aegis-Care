@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import type { HomeSuggestion } from "./use-home-suggestions";
@@ -8,10 +7,10 @@ const VISIBLE_CAP = 6;
 
 interface Props {
   suggestions: HomeSuggestion[];
-  onOpenBooking: () => void;
+  onSelect: (suggestion: HomeSuggestion) => void;
 }
 
-export function SuggestionRail({ suggestions, onOpenBooking }: Props) {
+export function SuggestionRail({ suggestions, onSelect }: Props) {
   const { t, lang } = useI18n();
   const [expanded, setExpanded] = useState(false);
 
@@ -32,13 +31,27 @@ export function SuggestionRail({ suggestions, onOpenBooking }: Props) {
               ? "bg-warning/15 text-warning"
               : "bg-accent text-accent-foreground",
         );
-        const cardClass =
-          "flex cursor-pointer flex-col gap-2 rounded-xl border bg-card p-3.5 text-left transition-colors hover:border-primary focus-visible:border-primary focus-visible:outline-none";
+        const countBadge = cn(
+          "rounded-full px-2 py-0.5 text-[11px] font-bold tabular-nums",
+          s.severity === "critical"
+            ? "bg-destructive/15 text-destructive"
+            : s.severity === "warning"
+              ? "bg-warning/15 text-warning"
+              : "bg-muted text-muted-foreground",
+        );
 
-        const content = (
-          <>
-            <span className={iconWrap}>
-              <Icon className="h-4 w-4" />
+        return (
+          <button
+            key={s.id}
+            type="button"
+            onClick={() => onSelect(s)}
+            className="flex cursor-pointer flex-col gap-2 rounded-xl border bg-card p-3.5 text-left transition-colors hover:border-primary focus-visible:border-primary focus-visible:outline-none"
+          >
+            <span className="flex items-center justify-between gap-2">
+              <span className={iconWrap}>
+                <Icon className="h-4 w-4" />
+              </span>
+              {s.count !== undefined && <span className={countBadge}>{s.count}</span>}
             </span>
             <span className="text-sm font-medium">{s.text}</span>
             <span className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
@@ -50,21 +63,7 @@ export function SuggestionRail({ suggestions, onOpenBooking }: Props) {
                 <span className="text-[10px] font-semibold uppercase tracking-wide text-warning">{t("home_ui_preview")}</span>
               )}
             </span>
-          </>
-        );
-
-        if (s.openBooking) {
-          return (
-            <button key={s.id} type="button" onClick={onOpenBooking} className={cardClass}>
-              {content}
-            </button>
-          );
-        }
-
-        return (
-          <Link key={s.id} to={s.to!.to as any} params={s.to!.params as any} className={cardClass}>
-            {content}
-          </Link>
+          </button>
         );
       })}
 
