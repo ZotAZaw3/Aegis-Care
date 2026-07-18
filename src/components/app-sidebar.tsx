@@ -25,7 +25,7 @@ export function AppSidebar() {
 
   // Nav theo vai — mỗi role chỉ thấy workspace của mình (admin thấy hết).
   const items = [
-    ...(has("admin") ? [{ title: t("dashboard"), url: "/dashboard", icon: LayoutDashboard }] : []),
+    ...(has("admin", "dentist") ? [{ title: t("dashboard"), url: "/dashboard", icon: LayoutDashboard }] : []),
     ...(has("dentist") ? [{ title: t("nav_clinic"), url: "/clinic", icon: Stethoscope }] : []),
     ...(has("assistant") ? [{ title: t("nav_execution"), url: "/execution", icon: ClipboardCheck }] : []),
     ...(has("lab_technician") ? [{ title: t("nav_lab"), url: "/lab", icon: FlaskConical }] : []),

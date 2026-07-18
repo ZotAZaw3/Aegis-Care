@@ -17,7 +17,8 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 function DashboardPage() {
   const qc = useQueryClient();
   const { roles } = useAuth();
-  const isAdmin = useHasRole("admin");
+  // Ops mở cho admin + bác sĩ (has_ops_access ở DB khớp với gate này).
+  const canView = useHasRole("admin", "dentist");
 
   // Best-effort escalation refresh on load (safe if function absent).
   useEffect(() => {
@@ -29,7 +30,7 @@ function DashboardPage() {
       .catch?.(() => {});
   }, [qc]);
 
-  if (!isAdmin) return <Navigate to={resolveHome(roles) as string} replace />;
+  if (!canView) return <Navigate to={resolveHome(roles) as string} replace />;
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
