@@ -17,7 +17,9 @@ import {
   type OrderDraft,
   type DraftDecision,
 } from "@/lib/orders";
+import { supabase } from "@/integrations/supabase/client";
 import { ExceptionDialog } from "./exception-dialog";
+import { ComplianceJudgeDialog, type JudgePayload } from "./compliance-judge-dialog";
 
 interface Props {
   sessionId: string;
@@ -34,6 +36,8 @@ export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
   const [decisions, setDecisions] = useState<DecisionMap>({});
   const [exceptionDraft, setExceptionDraft] = useState<OrderDraft | null>(null);
   const [signing, setSigning] = useState(false);
+  const [judging, setJudging] = useState(false);
+  const [judgeResult, setJudgeResult] = useState<JudgePayload | null>(null);
 
   const { data: drafts, isLoading } = useQuery<OrderDraft[]>({
     queryKey: ["order-drafts", proc],
@@ -69,15 +73,54 @@ export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
     [drafts, decisions],
   );
 
-  const sign = async () => {
+  // Bước 1: gọi Compliance Judge trước khi ký (không đường vòng).
+  const runJudge = async () => {
     if (!staffId) { toast.error(t("no_staff_profile")); return; }
     if (!drafts || drafts.length === 0) return;
+    setJudging(true);
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) { toast.error(t("copilot_error_auth")); return; }
+      const res = await fetch("/api/compliance-judge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          patient_id: patientId,
+          visit_session_id: sessionId,
+          procedure_type: proc,
+          decisions: decisionList.map((d) => ({ rule_id: d.draft.id, keep: d.keep, reason: d.exceptionReason })),
+        }),
+      });
+      const payload = (await res.json().catch(() => null)) as JudgePayload | null;
+      if (!res.ok || !payload) { toast.error(t("judge_error")); return; }
+      setJudgeResult(payload);
+    } catch {
+      toast.error(t("judge_error"));
+    } finally {
+      setJudging(false);
+    }
+  };
+
+  // Bước 2: bác sĩ xác nhận trong dialog → lưu ack + ký thật.
+  const confirmSign = async (ackReasons: Record<string, string>) => {
+    if (!staffId) return;
     setSigning(true);
     try {
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (token && judgeResult?.judgment_id) {
+        await fetch("/api/compliance-judge", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ action: "ack", judgment_id: judgeResult.judgment_id, ack_reasons: ackReasons }),
+        });
+      }
       await insertSignedOrders({ sessionId, patientId, procedureType: proc, decisions: decisionList, staffId });
       toast.success(t("orders_signed"));
       setProc("");
       setDecisions({});
+      setJudgeResult(null);
       qc.invalidateQueries({ queryKey: ["active-orders", sessionId] });
       qc.invalidateQueries({ queryKey: ["pending-review"] });
     } catch (e) {
@@ -155,9 +198,9 @@ export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
                 );
               })}
             </ul>
-            <Button className="w-full" onClick={sign} disabled={signing}>
-              {signing ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSignature className="h-4 w-4" />}
-              {t("sign_orders")}
+            <Button className="w-full" onClick={runJudge} disabled={judging}>
+              {judging ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSignature className="h-4 w-4" />}
+              {judging ? t("judge_running") : t("sign_orders")}
             </Button>
           </>
         ) : proc ? (
@@ -171,6 +214,13 @@ export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
         draft={exceptionDraft}
         onClose={() => setExceptionDraft(null)}
         onConfirm={confirmException}
+      />
+
+      <ComplianceJudgeDialog
+        result={judgeResult}
+        signing={signing}
+        onConfirm={confirmSign}
+        onCancel={() => setJudgeResult(null)}
       />
     </Card>
   );

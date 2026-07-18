@@ -17,6 +17,7 @@ import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/cr
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedFollowUpsRouteImport } from './routes/_authenticated/follow-ups'
 import { Route as AuthenticatedReceptionRouteImport } from './routes/_authenticated/reception'
+import { Route as ApiComplianceJudgeRouteImport } from './routes/api/compliance-judge'
 import { Route as ApiCopilotRouteImport } from './routes/api/copilot'
 import { Route as MyChecklistIdRouteImport } from './routes/my-checklist.$id'
 import { Route as AuthenticatedPatientsIndexRouteImport } from './routes/_authenticated/patients.index'
@@ -62,6 +63,11 @@ const AuthenticatedReceptionRoute = AuthenticatedReceptionRouteImport.update({
   path: '/reception',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiComplianceJudgeRoute = ApiComplianceJudgeRouteImport.update({
+  id: '/api/compliance-judge',
+  path: '/api/compliance-judge',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiCopilotRoute = ApiCopilotRouteImport.update({
   id: '/api/copilot',
   path: '/api/copilot',
@@ -97,6 +103,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/follow-ups': typeof AuthenticatedFollowUpsRoute
   '/reception': typeof AuthenticatedReceptionRoute
+  '/api/compliance-judge': typeof ApiComplianceJudgeRoute
   '/api/copilot': typeof ApiCopilotRoute
   '/my-checklist/$id': typeof MyChecklistIdRoute
   '/patients/$id': typeof AuthenticatedPatientsIdRoute
@@ -111,6 +118,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/follow-ups': typeof AuthenticatedFollowUpsRoute
   '/reception': typeof AuthenticatedReceptionRoute
+  '/api/compliance-judge': typeof ApiComplianceJudgeRoute
   '/api/copilot': typeof ApiCopilotRoute
   '/my-checklist/$id': typeof MyChecklistIdRoute
   '/patients/$id': typeof AuthenticatedPatientsIdRoute
@@ -127,6 +135,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/follow-ups': typeof AuthenticatedFollowUpsRoute
   '/_authenticated/reception': typeof AuthenticatedReceptionRoute
+  '/api/compliance-judge': typeof ApiComplianceJudgeRoute
   '/api/copilot': typeof ApiCopilotRoute
   '/my-checklist/$id': typeof MyChecklistIdRoute
   '/_authenticated/patients/$id': typeof AuthenticatedPatientsIdRoute
@@ -143,6 +152,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/follow-ups'
     | '/reception'
+    | '/api/compliance-judge'
     | '/api/copilot'
     | '/my-checklist/$id'
     | '/patients/$id'
@@ -157,6 +167,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/follow-ups'
     | '/reception'
+    | '/api/compliance-judge'
     | '/api/copilot'
     | '/my-checklist/$id'
     | '/patients/$id'
@@ -172,6 +183,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/follow-ups'
     | '/_authenticated/reception'
+    | '/api/compliance-judge'
     | '/api/copilot'
     | '/my-checklist/$id'
     | '/_authenticated/patients/$id'
@@ -183,6 +195,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiComplianceJudgeRoute: typeof ApiComplianceJudgeRoute
   ApiCopilotRoute: typeof ApiCopilotRoute
   MyChecklistIdRoute: typeof MyChecklistIdRoute
 }
@@ -244,6 +257,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/reception'
       preLoaderRoute: typeof AuthenticatedReceptionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/api/compliance-judge': {
+      id: '/api/compliance-judge'
+      path: '/api/compliance-judge'
+      fullPath: '/api/compliance-judge'
+      preLoaderRoute: typeof ApiComplianceJudgeRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/copilot': {
       id: '/api/copilot'
@@ -312,6 +332,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiComplianceJudgeRoute: ApiComplianceJudgeRoute,
   ApiCopilotRoute: ApiCopilotRoute,
   MyChecklistIdRoute: MyChecklistIdRoute,
 }
