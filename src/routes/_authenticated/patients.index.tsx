@@ -17,22 +17,40 @@ export const Route = createFileRoute("/_authenticated/patients/")({
   component: PatientsPage,
 });
 
+const PAGE_SIZE = 24;
+
 function PatientsPage() {
   const { t } = useI18n();
   const qc = useQueryClient();
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(0);
   const [open, setOpen] = useState(false);
 
-  const { data: patients } = useQuery({
-    queryKey: ["patients", search],
+  // Reset to first page whenever the search term changes.
+  const onSearch = (value: string) => {
+    setSearch(value);
+    setPage(0);
+  };
+
+  const { data } = useQuery({
+    queryKey: ["patients", search, page],
     queryFn: async () => {
-      let q = supabase.from("patients").select("id, full_name, dob, phone, email").order("created_at", { ascending: false }).limit(100);
+      const from = page * PAGE_SIZE;
+      let q = supabase
+        .from("patients")
+        .select("id, full_name, dob, phone, email", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .range(from, from + PAGE_SIZE - 1);
       if (search) q = q.ilike("full_name", `%${search}%`);
-      const { data, error } = await q;
+      const { data, count, error } = await q;
       if (error) throw error;
-      return data;
+      return { rows: data ?? [], total: count ?? 0 };
     },
   });
+
+  const patients = data?.rows;
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   const [form, setForm] = useState({ full_name: "", dob: "", gender: "", phone: "", email: "", contact_prefs: "" });
 
@@ -79,7 +97,10 @@ function PatientsPage() {
           </DialogContent>
         </Dialog>
       </div>
-      <Input placeholder={t("search_patients")} value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-md" />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <Input placeholder={t("search_patients")} value={search} onChange={(e) => onSearch(e.target.value)} className="max-w-md" />
+        <span className="text-xs text-muted-foreground">{t("total_count").replace("{n}", String(total))}</span>
+      </div>
       {!patients || patients.length === 0 ? (
         <Card><CardContent className="p-6 text-muted-foreground text-sm">{t("no_data")}</CardContent></Card>
       ) : (
@@ -99,6 +120,20 @@ function PatientsPage() {
               </Card>
             </Link>
           ))}
+        </div>
+      )}
+
+      {total > PAGE_SIZE && (
+        <div className="flex items-center justify-center gap-3 pt-2">
+          <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>
+            {t("page_prev")}
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            {t("page_of").replace("{a}", String(page + 1)).replace("{b}", String(totalPages))}
+          </span>
+          <Button variant="outline" size="sm" disabled={page + 1 >= totalPages} onClick={() => setPage((p) => p + 1)}>
+            {t("page_next")}
+          </Button>
         </div>
       )}
     </div>

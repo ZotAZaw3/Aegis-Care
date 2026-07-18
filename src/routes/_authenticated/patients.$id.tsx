@@ -11,6 +11,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertTriangle, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { SafetyPanel } from "@/components/dentist/safety-panel";
+import { DentalRecord } from "@/components/patient/dental-record";
 
 export const Route = createFileRoute("/_authenticated/patients/$id")({
   component: PatientDetail,
@@ -110,6 +112,11 @@ function PatientDetail() {
           </div>
         </div>
       )}
+
+      <div className="grid gap-4 md:grid-cols-2">
+        <SafetyPanel patientId={id} />
+        <DentalRecord patientId={id} />
+      </div>
 
       <Card>
         <CardHeader><CardTitle>{t("visit_history")}</CardTitle></CardHeader>
