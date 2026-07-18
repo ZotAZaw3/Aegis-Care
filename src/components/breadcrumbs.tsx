@@ -5,8 +5,7 @@ import { useI18n } from "@/lib/i18n";
 const labelMap: Record<string, string> = {
   dashboard: "dashboard",
   patients: "patients",
-  checkin: "check_in",
-  queue: "queue",
+  reception: "reception_management",
   visits: "sessions",
   crm: "crm",
   admin: "admin",

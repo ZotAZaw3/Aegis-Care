@@ -9,12 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { currentStaffId } from "@/lib/orders";
 
-export function CheckinForm() {
+export function CheckinForm({ onDone }: { onDone?: () => void }) {
   const { t } = useI18n();
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -67,15 +66,12 @@ export function CheckinForm() {
     const label = data.bed_number ? `${t("bed_label")} ${data.bed_number}` : `${t("number_label")} ${data.session_number}`;
     toast.success(`${t("checkin_success")}: ${label}`);
     setForm({ patient_id: "", chief_complaint: "", is_emergency: false, bed_number: "" });
-    qc.invalidateQueries({ queryKey: ["reception-queue"] });
-    qc.invalidateQueries({ queryKey: ["queue-sessions"] });
+    qc.invalidateQueries({ queryKey: ["reception-board"] });
+    onDone?.();
   };
 
   return (
-    <Card>
-      <CardHeader><CardTitle className="text-base">{t("checkin")}</CardTitle></CardHeader>
-      <CardContent>
-        <form onSubmit={checkIn} className="space-y-3">
+    <form onSubmit={checkIn} className="space-y-3">
           <div>
             <Label>{t("patient")}</Label>
             <div className="flex gap-2">
@@ -125,7 +121,5 @@ export function CheckinForm() {
           )}
           <Button type="submit" className="w-full" disabled={!form.patient_id}>{t("checkin_patient")}</Button>
         </form>
-      </CardContent>
-    </Card>
   );
 }

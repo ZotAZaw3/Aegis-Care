@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import defaultAvatar from "@/assets/patient-avatar-placeholder.jpg";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/patients/")({
@@ -78,21 +80,27 @@ function PatientsPage() {
         </Dialog>
       </div>
       <Input placeholder={t("search_patients")} value={search} onChange={(e) => setSearch(e.target.value)} className="max-w-md" />
-      <Card>
-        <CardContent className="p-0 divide-y">
-          {!patients || patients.length === 0 ? (
-            <div className="p-6 text-muted-foreground text-sm">{t("no_data")}</div>
-          ) : patients.map((p) => (
-            <Link key={p.id} to="/patients/$id" params={{ id: p.id }} className="flex items-center justify-between p-3 hover:bg-accent">
-              <div>
-                <div className="font-medium">{p.full_name}</div>
-                <div className="text-xs text-muted-foreground">{p.phone || p.email || "—"}</div>
-              </div>
-              <div className="text-xs text-muted-foreground">{p.dob ?? ""}</div>
+      {!patients || patients.length === 0 ? (
+        <Card><CardContent className="p-6 text-muted-foreground text-sm">{t("no_data")}</CardContent></Card>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          {patients.map((p) => (
+            <Link key={p.id} to="/patients/$id" params={{ id: p.id }}>
+              <Card className="gap-2 h-full hover:border-primary transition-colors">
+                <CardContent className="p-3 flex flex-col items-center text-center gap-2">
+                  <Avatar className="h-16 w-16">
+                    <AvatarImage src={defaultAvatar} alt="" />
+                    <AvatarFallback>{p.full_name?.[0] ?? "?"}</AvatarFallback>
+                  </Avatar>
+                  <div className="font-medium text-sm truncate w-full">{p.full_name}</div>
+                  <div className="text-xs text-muted-foreground truncate w-full">{p.phone || p.email || "—"}</div>
+                  <div className="text-xs text-muted-foreground">{p.dob ?? ""}</div>
+                </CardContent>
+              </Card>
             </Link>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      )}
     </div>
   );
 }
