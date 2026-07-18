@@ -1,7 +1,7 @@
 // Nút + dialog tóm tắt hồ sơ BN — gọi /api/patient-summary (retrieval từ Customer Graph).
 import { useState } from "react";
 import { Sparkles, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { getFreshToken } from "@/lib/session-token";
 import { useI18n } from "@/lib/i18n";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -29,8 +29,7 @@ export function PatientSummaryDialog({ patientId, patientName }: { patientId: st
     setSummary(null);
     setError(null);
     try {
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
+      const token = await getFreshToken();
       if (!token) { setError(t("copilot_error_auth")); return; }
       const res = await fetch("/api/patient-summary", {
         method: "POST",

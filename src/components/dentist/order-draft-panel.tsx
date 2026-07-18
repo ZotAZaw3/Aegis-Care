@@ -17,7 +17,7 @@ import {
   type OrderDraft,
   type DraftDecision,
 } from "@/lib/orders";
-import { supabase } from "@/integrations/supabase/client";
+import { getFreshToken } from "@/lib/session-token";
 import { ExceptionDialog } from "./exception-dialog";
 import { ComplianceJudgeDialog, type JudgePayload } from "./compliance-judge-dialog";
 import { CustomOrderForm } from "./custom-order-form";
@@ -85,8 +85,7 @@ export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
     if (allDrafts.length === 0) return;
     setJudging(true);
     try {
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
+      const token = await getFreshToken();
       if (!token) { toast.error(t("copilot_error_auth")); return; }
       const res = await fetch("/api/compliance-judge", {
         method: "POST",
@@ -113,8 +112,7 @@ export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
     if (!staffId) return;
     setSigning(true);
     try {
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
+      const token = await getFreshToken();
       if (token && judgeResult?.judgment_id) {
         await fetch("/api/compliance-judge", {
           method: "POST",

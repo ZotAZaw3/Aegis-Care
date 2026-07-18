@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FileText, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { getFreshToken } from "@/lib/session-token";
 import { ordersDb } from "@/lib/orders";
 import { useI18n } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,8 +35,7 @@ export function OpsReportPanel() {
     setGenerating(true);
     setError(null);
     try {
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
+      const token = await getFreshToken();
       if (!token) { setError(t("copilot_error_auth")); return; }
       const res = await fetch("/api/ops-report", {
         method: "POST",

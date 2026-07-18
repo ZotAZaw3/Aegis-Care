@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getFreshToken } from "@/lib/session-token";
 import { useI18n } from "@/lib/i18n";
 import type { ChatMessage } from "./copilot-message";
 
@@ -38,8 +38,7 @@ export function useCopilotChat(patientId?: string) {
       });
 
       try {
-        const { data } = await supabase.auth.getSession();
-        const token = data.session?.access_token;
+        const token = await getFreshToken();
         if (!token) {
           setMessages((prev) => [...prev, errorReply(t("copilot_error_auth"))]);
           return;
