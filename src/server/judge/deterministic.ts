@@ -47,6 +47,19 @@ export async function runDeterministic(
     }
   }
 
+  // consent_missing: thủ thuật GIỮ LẠI mà KB buộc cam kết → nêu như dữ kiện tại điểm ký.
+  // Cổng consent (trigger DB) sẽ chặn ĐÓNG lệnh nếu chưa nạp cam kết hợp lệ; đây là cảnh báo sớm.
+  for (const d of (draftsRes.data ?? []) as Array<Record<string, unknown>>) {
+    if (d.order_type !== "procedure" || !d.requires_consent) continue;
+    if (decByRule.get(d.id as string)?.keep === false) continue; // bỏ bước → đã bắt ở missing_mandatory
+    findings.push({
+      type: "consent_missing",
+      severity: "medium",
+      message: `Thủ thuật "${(d.title_vi as string) ?? (d.title as string)}" bắt buộc cam kết (consent): phải nạp cam kết hợp lệ trước khi đóng lệnh — cổng consent sẽ chặn nếu thiếu.`,
+      ref: d.id as string,
+    });
+  }
+
   const safety = (safetyRes.data ?? {}) as {
     systemic_flags?: Array<{ label_vi: string | null; label: string; severity_hint: string | null }>;
     allergies?: Array<{ label: string; severity: string | null }>;

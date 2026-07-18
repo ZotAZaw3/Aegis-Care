@@ -49,6 +49,8 @@ export interface OrderDraft {
   close_mode: string;
   due_offset_hours: number | null;
   sort_order: number;
+  evidence_type?: string | null; // loại bằng chứng đóng lệnh (file_upload | manual_tick | …)
+  completion_criteria_vi?: string | null; // "hoàn thành khi…" cho người thực thi
   is_custom?: boolean; // y lệnh bác sĩ tự thêm (không thuộc KB → kb_rule_id null)
 }
 
@@ -71,10 +73,17 @@ export interface ActiveOrder {
   assigned_role: string | null;
   status: string;
   close_mode: string | null;
+  evidence_type: string | null;
+  completion_criteria_vi: string | null;
   due_at: string | null;
   opened_at: string | null;
   closed_at: string | null;
   is_kb_mandatory: boolean | null;
+}
+
+/** Loại bằng chứng đóng lệnh — suy ra từ khai báo KB, fallback theo close_mode (custom order). */
+export function resolveEvidenceType(draft: { evidence_type?: string | null; close_mode: string }): string {
+  return draft.evidence_type ?? (draft.close_mode === "evidence" ? "file_upload" : "manual_tick");
 }
 
 export interface PendingReviewOrder {
@@ -164,6 +173,8 @@ export async function insertSignedOrders({ sessionId, patientId, procedureType, 
       ordered_by: staffId,
       assigned_role: draft.assigned_role,
       close_mode: draft.close_mode,
+      evidence_type: resolveEvidenceType(draft), // làm rõ "tick khi nào" cho hàng đợi thực thi
+      completion_criteria_vi: draft.completion_criteria_vi ?? null,
       kb_rule_id: draft.is_custom ? null : draft.id, // y lệnh tùy ý không thuộc KB
       is_kb_mandatory: draft.is_custom ? false : draft.mandatory,
       status: "open",
@@ -189,6 +200,8 @@ export async function insertSignedOrders({ sessionId, patientId, procedureType, 
         ordered_by: staffId,
         assigned_role: "receptionist",
         close_mode: "evidence",
+        evidence_type: "consent_scan",
+        completion_criteria_vi: "Đã nạp bản cam kết có chữ ký hợp lệ (đúng phạm vi, trong hạn).",
         status: "open",
       });
       if (consentErr) throw consentErr;

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Paperclip, FileText, Check, Clock } from "lucide-react";
+import { Paperclip, FileText, Check, Clock, CircleCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ export function OrderExecuteCard({ order, staffId, onDone }: Props) {
 
   const overdue = order.due_at ? new Date(order.due_at) < new Date() : false;
   const evidenceMode = order.close_mode === "evidence";
+  const evidenceType = order.evidence_type ?? (evidenceMode ? "file_upload" : "manual_tick");
 
   const run = async (fn: () => Promise<void>, okKey: string) => {
     if (!staffId) return toast.error(t("no_staff_profile"));
@@ -47,13 +48,23 @@ export function OrderExecuteCard({ order, staffId, onDone }: Props) {
           <div className="text-sm font-medium">{order.title}</div>
           {order.detail && <div className="text-xs text-muted-foreground">{order.detail}</div>}
         </div>
-        {order.due_at && (
-          <Badge variant={overdue ? "destructive" : "outline"} className="shrink-0 text-[10px]">
-            <Clock className="mr-1 h-3 w-3" />
-            {overdue ? t("overdue") : new Date(order.due_at).toLocaleDateString()}
-          </Badge>
-        )}
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <Badge variant="secondary" className="text-[10px]">{t(`ev_type_${evidenceType}`)}</Badge>
+          {order.due_at && (
+            <Badge variant={overdue ? "destructive" : "outline"} className="text-[10px]">
+              <Clock className="mr-1 h-3 w-3" />
+              {overdue ? t("overdue") : new Date(order.due_at).toLocaleDateString()}
+            </Badge>
+          )}
+        </div>
       </div>
+
+      {order.completion_criteria_vi && (
+        <div className="flex items-start gap-1.5 rounded-md bg-muted/50 px-2 py-1.5 text-xs text-muted-foreground">
+          <CircleCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
+          <span><span className="font-medium text-foreground">{t("completion_when")}:</span> {order.completion_criteria_vi}</span>
+        </div>
+      )}
 
       {evidenceMode ? (
         <div className="space-y-2">

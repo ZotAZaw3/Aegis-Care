@@ -12,7 +12,7 @@ const HOME_BY_ROLE: Array<[AppRole, string]> = [
 
 // Vai nào được vào workspace nào (admin vào hết). Dùng cho gate + nhớ workspace.
 const ACCESS: Record<string, AppRole[]> = {
-  "/dashboard": ["admin"],
+  "/dashboard": ["admin", "dentist"], // Ops report mở cho cả bác sĩ (has_ops_access)
   "/clinic": ["dentist"],
   "/execution": ["assistant"],
   "/lab": ["lab_technician"],

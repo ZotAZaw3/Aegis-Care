@@ -9,7 +9,7 @@ import { OpsTrendChart } from "@/components/manager/ops-trend-chart";
 import { OpsWorkloadByRole } from "@/components/manager/ops-workload-by-role";
 import { OpsReportPanel } from "@/components/manager/ops-report-panel";
 
-// Dashboard = báo cáo vận hành (Ops) CHO ADMIN. Các vai khác về workspace của mình (redirect).
+// Dashboard = báo cáo vận hành (Ops) cho ADMIN + BÁC SĨ (has_ops_access). Vai khác redirect về workspace.
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardPage,
 });
