@@ -49,6 +49,7 @@ export interface OrderDraft {
   close_mode: string;
   due_offset_hours: number | null;
   sort_order: number;
+  is_custom?: boolean; // y lệnh bác sĩ tự thêm (không thuộc KB → kb_rule_id null)
 }
 
 export interface BriefingSentence { text: string; encounter_ids: string[]; verbatim_span: string | null; }
@@ -163,8 +164,8 @@ export async function insertSignedOrders({ sessionId, patientId, procedureType, 
       ordered_by: staffId,
       assigned_role: draft.assigned_role,
       close_mode: draft.close_mode,
-      kb_rule_id: draft.id,
-      is_kb_mandatory: draft.mandatory,
+      kb_rule_id: draft.is_custom ? null : draft.id, // y lệnh tùy ý không thuộc KB
+      is_kb_mandatory: draft.is_custom ? false : draft.mandatory,
       status: "open",
     };
 

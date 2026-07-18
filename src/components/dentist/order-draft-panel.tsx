@@ -20,6 +20,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { ExceptionDialog } from "./exception-dialog";
 import { ComplianceJudgeDialog, type JudgePayload } from "./compliance-judge-dialog";
+import { CustomOrderForm } from "./custom-order-form";
 
 interface Props {
   sessionId: string;
@@ -33,6 +34,7 @@ export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
   const { t, lang } = useI18n();
   const qc = useQueryClient();
   const [proc, setProc] = useState<string>("");
+  const [customOrders, setCustomOrders] = useState<OrderDraft[]>([]);
   const [decisions, setDecisions] = useState<DecisionMap>({});
   const [exceptionDraft, setExceptionDraft] = useState<OrderDraft | null>(null);
   const [signing, setSigning] = useState(false);
@@ -50,6 +52,8 @@ export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
     },
   });
 
+  // Nháp KB + y lệnh tùy ý → ký chung qua Compliance Judge.
+  const allDrafts = useMemo(() => [...(drafts ?? []), ...customOrders], [drafts, customOrders]);
   const decisionFor = (d: OrderDraft) => decisions[d.id] ?? { keep: true };
 
   const toggleKeep = (d: OrderDraft, keep: boolean) => {
@@ -65,18 +69,20 @@ export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
     setExceptionDraft(null);
   };
 
+  const addCustom = (d: OrderDraft) => setCustomOrders((s) => [...s, d]);
+
   const decisionList: DraftDecision[] = useMemo(
-    () => (drafts ?? []).map((draft) => {
+    () => allDrafts.map((draft) => {
       const dec = decisions[draft.id] ?? { keep: true };
       return { draft, keep: dec.keep, exceptionReason: dec.reason };
     }),
-    [drafts, decisions],
+    [allDrafts, decisions],
   );
 
   // Bước 1: gọi Compliance Judge trước khi ký (không đường vòng).
   const runJudge = async () => {
     if (!staffId) { toast.error(t("no_staff_profile")); return; }
-    if (!drafts || drafts.length === 0) return;
+    if (allDrafts.length === 0) return;
     setJudging(true);
     try {
       const { data } = await supabase.auth.getSession();
@@ -120,6 +126,7 @@ export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
       toast.success(t("orders_signed"));
       setProc("");
       setDecisions({});
+      setCustomOrders([]);
       setJudgeResult(null);
       qc.invalidateQueries({ queryKey: ["active-orders", sessionId] });
       qc.invalidateQueries({ queryKey: ["pending-review"] });
@@ -139,7 +146,7 @@ export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Select value={proc} onValueChange={(v) => { setProc(v); setDecisions({}); }}>
+        <Select value={proc} onValueChange={(v) => { setProc(v); setDecisions({}); setCustomOrders([]); }}>
           <SelectTrigger aria-label={t("procedure_type")}>
             <SelectValue placeholder={t("select_procedure")} />
           </SelectTrigger>
@@ -150,15 +157,18 @@ export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
           </SelectContent>
         </Select>
 
-        {isLoading && proc ? (
+        {!proc ? (
+          <div className="py-6 text-center text-sm text-muted-foreground">{t("select_procedure_hint")}</div>
+        ) : isLoading ? (
           <div className="space-y-2">
             <Skeleton className="h-12 w-full" />
             <Skeleton className="h-12 w-full" />
           </div>
-        ) : proc && drafts && drafts.length > 0 ? (
+        ) : (
           <>
+            {allDrafts.length > 0 && (
             <ul className="space-y-2">
-              {drafts.map((d) => {
+              {allDrafts.map((d) => {
                 const dec = decisionFor(d);
                 const title = lang === "vi" && d.title_vi ? d.title_vi : d.title;
                 return (
@@ -179,6 +189,9 @@ export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
                       <div className="flex flex-wrap items-center gap-1.5">
                         <span className={cn("text-sm font-medium", !dec.keep && "line-through")}>{title}</span>
                         <Badge variant="outline" className="text-[10px]">{t(d.order_type)}</Badge>
+                        {d.is_custom && (
+                          <Badge variant="secondary" className="text-[10px]">{t("custom_badge")}</Badge>
+                        )}
                         {d.mandatory && (
                           <Badge variant="destructive" className="text-[10px]">{t("mandatory")}</Badge>
                         )}
@@ -198,15 +211,15 @@ export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
                 );
               })}
             </ul>
-            <Button className="w-full" onClick={runJudge} disabled={judging}>
-              {judging ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSignature className="h-4 w-4" />}
-              {judging ? t("judge_running") : t("sign_orders")}
-            </Button>
+            )}
+            <CustomOrderForm onAdd={addCustom} />
+            {allDrafts.length > 0 && (
+              <Button className="w-full" onClick={runJudge} disabled={judging}>
+                {judging ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSignature className="h-4 w-4" />}
+                {judging ? t("judge_running") : t("sign_orders")}
+              </Button>
+            )}
           </>
-        ) : proc ? (
-          <div className="py-6 text-center text-sm text-muted-foreground">{t("no_records")}</div>
-        ) : (
-          <div className="py-6 text-center text-sm text-muted-foreground">{t("select_procedure_hint")}</div>
         )}
       </CardContent>
 
