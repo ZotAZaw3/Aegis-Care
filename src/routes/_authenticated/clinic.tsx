@@ -9,6 +9,7 @@ import { useStaffId } from "@/lib/use-staff-id";
 import { resolveHome } from "@/lib/resolve-home";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatTile } from "@/components/shared/stat-tile";
+import { ClinicFlowStrip } from "@/components/manager/clinic-flow-strip";
 import { OpenCasesBoard } from "@/components/manager/open-cases-board";
 import { PendingReviewQueue } from "@/components/dentist/pending-review-queue";
 
@@ -42,6 +43,8 @@ function ClinicPage() {
   return (
     <div className="space-y-4">
       <PageHeader title={t("nav_clinic")} description={t("clinic_subtitle")} />
+
+      <ClinicFlowStrip />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <StatTile icon={<LayoutList className="h-4 w-4" />} label={t("open_cases")} value={stats?.open ?? 0} />

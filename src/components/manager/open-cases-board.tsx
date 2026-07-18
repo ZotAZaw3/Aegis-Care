@@ -86,7 +86,10 @@ export function OpenCasesBoard() {
         {isLoading ? (
           <><Skeleton className="h-12 w-full" /><Skeleton className="h-12 w-full" /></>
         ) : (cases ?? []).length === 0 ? (
-          <div className="py-8 text-center text-sm text-muted-foreground">{t("no_open_cases")}</div>
+          <div className="py-8 text-center">
+            <div className="text-sm text-muted-foreground">{t("no_open_cases")}</div>
+            <div className="mx-auto mt-1 max-w-xs text-xs text-muted-foreground">{t("no_open_cases_hint")}</div>
+          </div>
         ) : (
           (cases ?? []).map((c) => (
             <Link
