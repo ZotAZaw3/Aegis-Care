@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { currentStaffId } from "@/lib/orders";
+import { useMyDepartments } from "@/lib/departments";
 import { submitConsent, explainGate, type ConsentSigner } from "@/lib/consent";
 
 interface Props {
@@ -21,7 +22,8 @@ const today = () => new Date().toISOString().slice(0, 10);
 
 export function ConsentForm({ consentOrderId, parentOpenedAt, patientDob, onClose }: Props) {
   const { t } = useI18n();
-  const { user } = useAuth();
+  const { user, roles } = useAuth();
+  const { data: myDepts } = useMyDepartments();
   const qc = useQueryClient();
   const [signer, setSigner] = useState<ConsentSigner>("patient");
   const [signedDate, setSignedDate] = useState(today());
@@ -29,6 +31,10 @@ export function ConsentForm({ consentOrderId, parentOpenedAt, patientDob, onClos
   const [busy, setBusy] = useState(false);
 
   const preCheck = explainGate(parentOpenedAt, patientDob, signer, signedDate);
+  // P2: consent order thuộc phòng Tiếp đón → chỉ reception (hoặc dentist/admin override) nạp được.
+  // Chặn ở UI để tránh partial-write (consents mồ côi) trước khi RLS chặn order_evidence.
+  const canSubmit =
+    roles.includes("dentist") || roles.includes("admin") || (myDepts ?? []).some((d) => d.code === "reception");
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +54,9 @@ export function ConsentForm({ consentOrderId, parentOpenedAt, patientDob, onClos
       qc.invalidateQueries({ queryKey: ["active-orders"] });
       onClose();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("error"));
+      const code = (err as { code?: string } | null)?.code;
+      if (code === "42501") toast.error(t("not_in_department"));
+      else toast.error(err instanceof Error ? err.message : t("error"));
     } finally {
       setBusy(false);
     }
@@ -79,7 +87,12 @@ export function ConsentForm({ consentOrderId, parentOpenedAt, patientDob, onClos
           {t("gate_open_reason")}: {t(preCheck)}
         </div>
       )}
-      <Button type="submit" className="w-full" disabled={busy || !scanFile}>{t("submit_consent")}</Button>
+      {!canSubmit && (
+        <div className="rounded-md border border-warning/40 bg-warning/10 px-3 py-2 text-xs text-muted-foreground">
+          {t("not_in_department")}
+        </div>
+      )}
+      <Button type="submit" className="w-full" disabled={busy || !scanFile || !canSubmit}>{t("submit_consent")}</Button>
     </form>
   );
 }

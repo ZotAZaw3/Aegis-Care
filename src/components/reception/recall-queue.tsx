@@ -55,7 +55,10 @@ export function RecallQueue() {
       toast.success(t(okKey));
       qc.invalidateQueries({ queryKey: ["recall-queue"] });
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t("error"));
+      // follow_up thuộc phòng Tiếp đón → RLS chặn nếu ngoài phòng (42501).
+      const code = (e as { code?: string } | null)?.code;
+      if (code === "42501") toast.error(t("not_in_department"));
+      else toast.error(e instanceof Error ? e.message : t("error"));
     } finally {
       setBusy(null);
     }

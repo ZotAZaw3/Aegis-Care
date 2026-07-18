@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { uploadEvidence, markManualDone } from "@/lib/evidence";
 import type { ActiveOrder } from "@/lib/orders";
+import { useMyDepartments } from "@/lib/departments";
+import { useAuth } from "@/lib/auth";
 
 interface Props {
   order: ActiveOrder;
@@ -17,6 +19,8 @@ interface Props {
 
 export function OrderExecuteCard({ order, staffId, onDone }: Props) {
   const { t } = useI18n();
+  const { roles } = useAuth();
+  const { data: myDepts } = useMyDepartments();
   const [file, setFile] = useState<File | null>(null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -24,6 +28,11 @@ export function OrderExecuteCard({ order, staffId, onDone }: Props) {
   const overdue = order.due_at ? new Date(order.due_at) < new Date() : false;
   const evidenceMode = order.close_mode === "evidence";
   const evidenceType = order.evidence_type ?? (evidenceMode ? "file_upload" : "manual_tick");
+
+  // P2: chỉ nhân viên đúng phòng mới đóng (override dentist/admin). Gate cứng ở RLS; đây là guard UX.
+  const isOverride = roles.includes("dentist") || roles.includes("admin");
+  const canClose =
+    isOverride || !order.department_id || (myDepts ?? []).some((d) => d.id === order.department_id);
 
   const run = async (fn: () => Promise<void>, okKey: string) => {
     if (!staffId) return toast.error(t("no_staff_profile"));
@@ -35,7 +44,10 @@ export function OrderExecuteCard({ order, staffId, onDone }: Props) {
       setNote("");
       onDone();
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : t("error"));
+      // RLS chặn (không đúng phòng) → 42501; hiện thông báo rõ thay vì message thô.
+      const code = (e as { code?: string } | null)?.code;
+      if (code === "42501") toast.error(t("not_in_department"));
+      else toast.error(e instanceof Error ? e.message : t("error"));
     } finally {
       setBusy(false);
     }
@@ -66,7 +78,11 @@ export function OrderExecuteCard({ order, staffId, onDone }: Props) {
         </div>
       )}
 
-      {evidenceMode ? (
+      {!canClose ? (
+        <div className="rounded-md border border-warning/40 bg-warning/10 px-2 py-2 text-xs text-muted-foreground">
+          {t("not_in_department")}
+        </div>
+      ) : evidenceMode ? (
         <div className="space-y-2">
           <Input
             type="file"

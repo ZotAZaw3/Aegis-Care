@@ -330,6 +330,8 @@ const dict = {
     ev_type_record: "Ghi nhận",
     ev_type_appointment: "Lịch hẹn",
     ev_type_consent_scan: "Cam kết (scan)",
+    dept_queue_label: "Hàng đợi phòng",
+    not_in_department: "Bạn không thuộc phòng phụ trách y lệnh này nên không thể tích hoàn thành.",
     choose_evidence_file: "Chọn tệp bằng chứng (ảnh/PDF)",
     // Phase 09 — Reception consent / recall
     consent_queue: "Cam kết chờ ký",
@@ -812,6 +814,8 @@ const dict = {
     ev_type_record: "Record note",
     ev_type_appointment: "Appointment",
     ev_type_consent_scan: "Consent scan",
+    dept_queue_label: "Department queue",
+    not_in_department: "You are not in the department responsible for this order, so you cannot mark it complete.",
     // Phase 09 — Reception consent / recall
     consent_queue: "Consent queue",
     consent_form: "Consent form",

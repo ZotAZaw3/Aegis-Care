@@ -5,20 +5,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/lib/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ordersDb, currentStaffId, type ActiveOrder } from "@/lib/orders";
+import { useMyDepartments } from "@/lib/departments";
 import { OrderExecuteCard } from "./order-execute-card";
 
 interface ExecOrder extends ActiveOrder {
   patients?: { full_name: string } | { full_name: string }[] | null;
 }
 
-const EXEC_KEY = ["assistant-exec-orders"];
+const EXEC_KEY = ["exec-orders"];
 
 export function OrderExecutionList() {
   const { t } = useI18n();
   const { user } = useAuth();
   const qc = useQueryClient();
+  const { data: myDepts } = useMyDepartments();
+  const deptIds = (myDepts ?? []).map((d) => d.id);
 
   const { data: staffId } = useQuery({
     queryKey: ["current-staff", user?.id],
@@ -26,13 +30,17 @@ export function OrderExecutionList() {
     queryFn: () => (user ? currentStaffId(user.id) : Promise.resolve(undefined)),
   });
 
+  // Hàng đợi trạm: order thuộc phòng tôi trực. Loại procedure (dentist ở /clinic), consent (/reception),
+  // follow_up (đã có RecallQueue riêng ở /follow-ups) → tránh trùng hàng đợi.
   const { data: orders, isLoading } = useQuery<ExecOrder[]>({
-    queryKey: EXEC_KEY,
+    queryKey: [...EXEC_KEY, deptIds],
+    enabled: deptIds.length > 0,
     queryFn: async () => {
       const { data, error } = await ordersDb
         .from("medical_orders")
         .select("*, patients(full_name)")
-        .eq("assigned_role", "assistant")
+        .in("department_id", deptIds)
+        .not("order_type", "in", "(procedure,consent,follow_up)")
         .in("status", ["open", "routed", "in_progress"])
         .order("due_at", { ascending: true, nullsFirst: false });
       if (error) throw error;
@@ -41,10 +49,11 @@ export function OrderExecutionList() {
   });
 
   useEffect(() => {
+    // Không lọc realtime theo department (không filter IN được) → invalidate rộng, query tự lọc lại.
     const invalidate = () => qc.invalidateQueries({ queryKey: EXEC_KEY });
     const ch = supabase
-      .channel("assistant-exec-live")
-      .on("postgres_changes", { event: "*", schema: "public", table: "medical_orders", filter: "assigned_role=eq.assistant" }, invalidate)
+      .channel("exec-live")
+      .on("postgres_changes", { event: "*", schema: "public", table: "medical_orders" }, invalidate)
       .on("postgres_changes", { event: "*", schema: "public", table: "order_evidence" }, invalidate)
       .subscribe();
     return () => { supabase.removeChannel(ch); };
@@ -59,6 +68,14 @@ export function OrderExecutionList() {
           <ClipboardList className="h-4 w-4 text-muted-foreground" />
           {t("order_execution")}
         </CardTitle>
+        {(myDepts ?? []).length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            <span className="text-xs text-muted-foreground">{t("dept_queue_label")}:</span>
+            {(myDepts ?? []).map((d) => (
+              <Badge key={d.id} variant="secondary" className="text-[10px]">{d.name_vi}</Badge>
+            ))}
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {isLoading ? (

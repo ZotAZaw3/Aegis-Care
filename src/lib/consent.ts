@@ -39,7 +39,12 @@ export async function submitConsent(
     consent_id: consent?.id ?? null,
     submitted_by: staffId,
   });
-  if (evErr) throw evErr;
+  // order_evidence bị gate theo phòng (P2). Nếu fail (vd 42501 sai phòng), GỠ dòng consents vừa
+  // tạo — nếu không, UNIQUE(order_id) sẽ chặn cả lần nạp hợp lệ về sau → kẹt cổng procedure.
+  if (evErr) {
+    if (consent?.id) await ordersDb.from("consents").delete().eq("id", consent.id);
+    throw evErr;
+  }
 
   const { data: order } = await ordersDb
     .from("medical_orders")

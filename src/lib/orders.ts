@@ -51,6 +51,7 @@ export interface OrderDraft {
   sort_order: number;
   evidence_type?: string | null; // loại bằng chứng đóng lệnh (file_upload | manual_tick | …)
   completion_criteria_vi?: string | null; // "hoàn thành khi…" cho người thực thi
+  department_id?: string | null; // đích định tuyến (phòng) — route_order trigger cũng tự gán
   is_custom?: boolean; // y lệnh bác sĩ tự thêm (không thuộc KB → kb_rule_id null)
 }
 
@@ -75,6 +76,7 @@ export interface ActiveOrder {
   close_mode: string | null;
   evidence_type: string | null;
   completion_criteria_vi: string | null;
+  department_id: string | null;
   due_at: string | null;
   opened_at: string | null;
   closed_at: string | null;
