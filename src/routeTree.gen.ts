@@ -18,6 +18,7 @@ import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/cr
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedFollowUpsRouteImport } from './routes/_authenticated/follow-ups'
 import { Route as AuthenticatedQueueRouteImport } from './routes/_authenticated/queue'
+import { Route as ApiCopilotRouteImport } from './routes/api/copilot'
 import { Route as MyChecklistIdRouteImport } from './routes/my-checklist.$id'
 import { Route as AuthenticatedPatientsIndexRouteImport } from './routes/_authenticated/patients.index'
 import { Route as AuthenticatedPatientsIdRouteImport } from './routes/_authenticated/patients.$id'
@@ -67,6 +68,11 @@ const AuthenticatedQueueRoute = AuthenticatedQueueRouteImport.update({
   path: '/queue',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiCopilotRoute = ApiCopilotRouteImport.update({
+  id: '/api/copilot',
+  path: '/api/copilot',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MyChecklistIdRoute = MyChecklistIdRouteImport.update({
   id: '/my-checklist/$id',
   path: '/my-checklist/$id',
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/follow-ups': typeof AuthenticatedFollowUpsRoute
   '/queue': typeof AuthenticatedQueueRoute
+  '/api/copilot': typeof ApiCopilotRoute
   '/my-checklist/$id': typeof MyChecklistIdRoute
   '/patients/$id': typeof AuthenticatedPatientsIdRoute
   '/visits/$id': typeof AuthenticatedVisitsIdRoute
@@ -112,6 +119,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/follow-ups': typeof AuthenticatedFollowUpsRoute
   '/queue': typeof AuthenticatedQueueRoute
+  '/api/copilot': typeof ApiCopilotRoute
   '/my-checklist/$id': typeof MyChecklistIdRoute
   '/patients/$id': typeof AuthenticatedPatientsIdRoute
   '/visits/$id': typeof AuthenticatedVisitsIdRoute
@@ -128,6 +136,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/follow-ups': typeof AuthenticatedFollowUpsRoute
   '/_authenticated/queue': typeof AuthenticatedQueueRoute
+  '/api/copilot': typeof ApiCopilotRoute
   '/my-checklist/$id': typeof MyChecklistIdRoute
   '/_authenticated/patients/$id': typeof AuthenticatedPatientsIdRoute
   '/_authenticated/visits/$id': typeof AuthenticatedVisitsIdRoute
@@ -144,6 +153,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/follow-ups'
     | '/queue'
+    | '/api/copilot'
     | '/my-checklist/$id'
     | '/patients/$id'
     | '/visits/$id'
@@ -158,6 +168,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/follow-ups'
     | '/queue'
+    | '/api/copilot'
     | '/my-checklist/$id'
     | '/patients/$id'
     | '/visits/$id'
@@ -173,6 +184,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard'
     | '/_authenticated/follow-ups'
     | '/_authenticated/queue'
+    | '/api/copilot'
     | '/my-checklist/$id'
     | '/_authenticated/patients/$id'
     | '/_authenticated/visits/$id'
@@ -183,6 +195,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiCopilotRoute: typeof ApiCopilotRoute
   MyChecklistIdRoute: typeof MyChecklistIdRoute
 }
 
@@ -251,6 +264,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedQueueRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/copilot': {
+      id: '/api/copilot'
+      path: '/api/copilot'
+      fullPath: '/api/copilot'
+      preLoaderRoute: typeof ApiCopilotRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/my-checklist/$id': {
       id: '/my-checklist/$id'
       path: '/my-checklist/$id'
@@ -313,6 +333,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiCopilotRoute: ApiCopilotRoute,
   MyChecklistIdRoute: MyChecklistIdRoute,
 }
 export const routeTree = rootRouteImport
