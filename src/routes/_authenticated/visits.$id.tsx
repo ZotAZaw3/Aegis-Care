@@ -10,6 +10,7 @@ import { BriefingPanel } from "@/components/dentist/briefing-panel";
 import { OrderDraftPanel } from "@/components/dentist/order-draft-panel";
 import { ActiveOrdersList } from "@/components/dentist/active-orders-list";
 import { PendingReviewQueue } from "@/components/dentist/pending-review-queue";
+import { useCopilot } from "@/components/copilot/copilot-context";
 
 export const Route = createFileRoute("/_authenticated/visits/$id")({
   component: VisitPage,
@@ -45,6 +46,14 @@ function VisitPage() {
   const patient: any = session
     ? Array.isArray(session.patients) ? session.patients[0] : session.patients
     : null;
+
+  // Feed the open patient into the global copilot context.
+  const { setPatient, clearPatient } = useCopilot();
+  useEffect(() => {
+    if (!patient?.id) return;
+    setPatient(patient.id, patient.full_name ?? "—");
+    return () => clearPatient();
+  }, [patient?.id, patient?.full_name, setPatient, clearPatient]);
 
   // Claim a freshly-called visit when the dentist opens it.
   useEffect(() => {

@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/language-toggle";
 import { AlertsBell } from "@/components/alerts-bell";
 import { Breadcrumbs } from "@/components/breadcrumbs";
+import { CopilotProvider } from "@/components/copilot/copilot-context";
+import { CopilotChat } from "@/components/copilot/copilot-chat";
 import { LogOut, Stethoscope } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -22,6 +24,7 @@ function AuthedLayout() {
   if (!user) return <Navigate to="/auth" replace />;
 
   return (
+    <CopilotProvider>
     <SidebarProvider defaultOpen={false}>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
@@ -62,6 +65,8 @@ function AuthedLayout() {
           </main>
         </div>
       </div>
+      {roles.length > 0 && <CopilotChat />}
     </SidebarProvider>
+    </CopilotProvider>
   );
 }
