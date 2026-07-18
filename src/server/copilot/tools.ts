@@ -54,6 +54,26 @@ export function buildTools({ supabase, openai, patientId, citations }: BuildTool
       },
     }),
 
+    find_patient: tool({
+      description:
+        "Tra bệnh nhân theo TÊN (và tùy chọn ngày sinh) để lấy patient_id. BẮT BUỘC gọi tool này trước khi dùng các tool hồ sơ (safety_panel, patient_history, crm_recall) khi người dùng nêu tên bệnh nhân mà chưa có patient_id trong ngữ cảnh. Trả tối đa 5 kết quả khớp.",
+      inputSchema: z.object({
+        name: z.string().describe("Tên (hoặc một phần tên) bệnh nhân, tiếng Việt."),
+        dob: z.string().optional().describe("Ngày sinh YYYY-MM-DD nếu người dùng cung cấp, để thu hẹp kết quả."),
+      }),
+      execute: async ({ name, dob }) => {
+        let q = supabase
+          .from("patients")
+          .select("id, full_name, dob, phone")
+          .ilike("full_name", `%${name}%`)
+          .limit(5);
+        if (dob) q = q.eq("dob", dob);
+        const { data, error } = await q;
+        if (error) return { error: error.message, matches: [] };
+        return { matches: data ?? [] };
+      },
+    }),
+
     safety_panel: tool({
       description:
         "Lấy dữ liệu an toàn ADVISORY của bệnh nhân: dị ứng, thuốc đang dùng, cờ bệnh nền liên quan nha. Đây là dữ kiện đã ghi, KHÔNG phải khuyến nghị. Nhắc người dùng panel an toàn trên giao diện mới là nguồn quyết định.",

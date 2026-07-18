@@ -67,7 +67,7 @@ export function useHomeSuggestions() {
       const { data, error } = await ordersDb
         .from("pending_review_orders")
         .select("id, visit_session_id, opened_at")
-        .eq("assigned_dentist_id", staffId)
+        .eq("assigned_dentist_id", staffId!)
         .order("opened_at", { ascending: true });
       if (error) throw error;
       return (data as { id: string; visit_session_id: string }[]) ?? [];
@@ -81,7 +81,7 @@ export function useHomeSuggestions() {
       const { data: mySessions, error: e1 } = await supabase
         .from("visit_sessions")
         .select("id")
-        .eq("assigned_dentist_id", staffId);
+        .eq("assigned_dentist_id", staffId!);
       if (e1) throw e1;
       const ids = (mySessions ?? []).map((s: any) => s.id);
       if (ids.length === 0) return [];
@@ -103,7 +103,7 @@ export function useHomeSuggestions() {
         .from("visit_sessions")
         .select("id, patients(full_name)")
         .eq("status", "in_exam")
-        .eq("assigned_dentist_id", staffId)
+        .eq("assigned_dentist_id", staffId!)
         .order("created_at", { ascending: true })
         .limit(1);
       if (error) throw error;
