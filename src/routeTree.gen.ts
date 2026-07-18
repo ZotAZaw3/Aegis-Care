@@ -19,6 +19,7 @@ import { Route as AuthenticatedFollowUpsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedReceptionRouteImport } from './routes/_authenticated/reception'
 import { Route as ApiComplianceJudgeRouteImport } from './routes/api/compliance-judge'
 import { Route as ApiCopilotRouteImport } from './routes/api/copilot'
+import { Route as ApiOpsReportRouteImport } from './routes/api/ops-report'
 import { Route as MyChecklistIdRouteImport } from './routes/my-checklist.$id'
 import { Route as AuthenticatedPatientsIndexRouteImport } from './routes/_authenticated/patients.index'
 import { Route as AuthenticatedPatientsIdRouteImport } from './routes/_authenticated/patients.$id'
@@ -73,6 +74,11 @@ const ApiCopilotRoute = ApiCopilotRouteImport.update({
   path: '/api/copilot',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiOpsReportRoute = ApiOpsReportRouteImport.update({
+  id: '/api/ops-report',
+  path: '/api/ops-report',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MyChecklistIdRoute = MyChecklistIdRouteImport.update({
   id: '/my-checklist/$id',
   path: '/my-checklist/$id',
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/reception': typeof AuthenticatedReceptionRoute
   '/api/compliance-judge': typeof ApiComplianceJudgeRoute
   '/api/copilot': typeof ApiCopilotRoute
+  '/api/ops-report': typeof ApiOpsReportRoute
   '/my-checklist/$id': typeof MyChecklistIdRoute
   '/patients/$id': typeof AuthenticatedPatientsIdRoute
   '/visits/$id': typeof AuthenticatedVisitsIdRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/reception': typeof AuthenticatedReceptionRoute
   '/api/compliance-judge': typeof ApiComplianceJudgeRoute
   '/api/copilot': typeof ApiCopilotRoute
+  '/api/ops-report': typeof ApiOpsReportRoute
   '/my-checklist/$id': typeof MyChecklistIdRoute
   '/patients/$id': typeof AuthenticatedPatientsIdRoute
   '/visits/$id': typeof AuthenticatedVisitsIdRoute
@@ -137,6 +145,7 @@ export interface FileRoutesById {
   '/_authenticated/reception': typeof AuthenticatedReceptionRoute
   '/api/compliance-judge': typeof ApiComplianceJudgeRoute
   '/api/copilot': typeof ApiCopilotRoute
+  '/api/ops-report': typeof ApiOpsReportRoute
   '/my-checklist/$id': typeof MyChecklistIdRoute
   '/_authenticated/patients/$id': typeof AuthenticatedPatientsIdRoute
   '/_authenticated/visits/$id': typeof AuthenticatedVisitsIdRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/reception'
     | '/api/compliance-judge'
     | '/api/copilot'
+    | '/api/ops-report'
     | '/my-checklist/$id'
     | '/patients/$id'
     | '/visits/$id'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/reception'
     | '/api/compliance-judge'
     | '/api/copilot'
+    | '/api/ops-report'
     | '/my-checklist/$id'
     | '/patients/$id'
     | '/visits/$id'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/_authenticated/reception'
     | '/api/compliance-judge'
     | '/api/copilot'
+    | '/api/ops-report'
     | '/my-checklist/$id'
     | '/_authenticated/patients/$id'
     | '/_authenticated/visits/$id'
@@ -197,6 +209,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ApiComplianceJudgeRoute: typeof ApiComplianceJudgeRoute
   ApiCopilotRoute: typeof ApiCopilotRoute
+  ApiOpsReportRoute: typeof ApiOpsReportRoute
   MyChecklistIdRoute: typeof MyChecklistIdRoute
 }
 
@@ -272,6 +285,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiCopilotRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ops-report': {
+      id: '/api/ops-report'
+      path: '/api/ops-report'
+      fullPath: '/api/ops-report'
+      preLoaderRoute: typeof ApiOpsReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/my-checklist/$id': {
       id: '/my-checklist/$id'
       path: '/my-checklist/$id'
@@ -334,6 +354,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ApiComplianceJudgeRoute: ApiComplianceJudgeRoute,
   ApiCopilotRoute: ApiCopilotRoute,
+  ApiOpsReportRoute: ApiOpsReportRoute,
   MyChecklistIdRoute: MyChecklistIdRoute,
 }
 export const routeTree = rootRouteImport
