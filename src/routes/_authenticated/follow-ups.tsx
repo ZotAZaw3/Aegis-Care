@@ -11,7 +11,7 @@ function FollowUpsPage() {
 
   return (
     <div className="space-y-4 max-w-3xl">
-      <h1 className="text-2xl font-semibold">{t("recall")}</h1>
+      <h1 className="text-2xl font-semibold">{t("follow_ups")}</h1>
       <RecallQueue />
     </div>
   );

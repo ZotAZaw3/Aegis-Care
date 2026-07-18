@@ -13,11 +13,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as AuthenticatedCheckinRouteImport } from './routes/_authenticated/checkin'
 import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedFollowUpsRouteImport } from './routes/_authenticated/follow-ups'
-import { Route as AuthenticatedQueueRouteImport } from './routes/_authenticated/queue'
+import { Route as AuthenticatedReceptionRouteImport } from './routes/_authenticated/reception'
 import { Route as MyChecklistIdRouteImport } from './routes/my-checklist.$id'
 import { Route as AuthenticatedPatientsIndexRouteImport } from './routes/_authenticated/patients.index'
 import { Route as AuthenticatedPatientsIdRouteImport } from './routes/_authenticated/patients.$id'
@@ -42,11 +41,6 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedCheckinRoute = AuthenticatedCheckinRouteImport.update({
-  id: '/checkin',
-  path: '/checkin',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedCrmRoute = AuthenticatedCrmRouteImport.update({
   id: '/crm',
   path: '/crm',
@@ -62,9 +56,9 @@ const AuthenticatedFollowUpsRoute = AuthenticatedFollowUpsRouteImport.update({
   path: '/follow-ups',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedQueueRoute = AuthenticatedQueueRouteImport.update({
-  id: '/queue',
-  path: '/queue',
+const AuthenticatedReceptionRoute = AuthenticatedReceptionRouteImport.update({
+  id: '/reception',
+  path: '/reception',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const MyChecklistIdRoute = MyChecklistIdRouteImport.update({
@@ -93,11 +87,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
-  '/checkin': typeof AuthenticatedCheckinRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/follow-ups': typeof AuthenticatedFollowUpsRoute
-  '/queue': typeof AuthenticatedQueueRoute
+  '/reception': typeof AuthenticatedReceptionRoute
   '/my-checklist/$id': typeof MyChecklistIdRoute
   '/patients/$id': typeof AuthenticatedPatientsIdRoute
   '/visits/$id': typeof AuthenticatedVisitsIdRoute
@@ -107,11 +100,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
-  '/checkin': typeof AuthenticatedCheckinRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/follow-ups': typeof AuthenticatedFollowUpsRoute
-  '/queue': typeof AuthenticatedQueueRoute
+  '/reception': typeof AuthenticatedReceptionRoute
   '/my-checklist/$id': typeof MyChecklistIdRoute
   '/patients/$id': typeof AuthenticatedPatientsIdRoute
   '/visits/$id': typeof AuthenticatedVisitsIdRoute
@@ -123,11 +115,10 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
-  '/_authenticated/checkin': typeof AuthenticatedCheckinRoute
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/follow-ups': typeof AuthenticatedFollowUpsRoute
-  '/_authenticated/queue': typeof AuthenticatedQueueRoute
+  '/_authenticated/reception': typeof AuthenticatedReceptionRoute
   '/my-checklist/$id': typeof MyChecklistIdRoute
   '/_authenticated/patients/$id': typeof AuthenticatedPatientsIdRoute
   '/_authenticated/visits/$id': typeof AuthenticatedVisitsIdRoute
@@ -139,11 +130,10 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/admin'
-    | '/checkin'
     | '/crm'
     | '/dashboard'
     | '/follow-ups'
-    | '/queue'
+    | '/reception'
     | '/my-checklist/$id'
     | '/patients/$id'
     | '/visits/$id'
@@ -153,11 +143,10 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/admin'
-    | '/checkin'
     | '/crm'
     | '/dashboard'
     | '/follow-ups'
-    | '/queue'
+    | '/reception'
     | '/my-checklist/$id'
     | '/patients/$id'
     | '/visits/$id'
@@ -168,11 +157,10 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/admin'
-    | '/_authenticated/checkin'
     | '/_authenticated/crm'
     | '/_authenticated/dashboard'
     | '/_authenticated/follow-ups'
-    | '/_authenticated/queue'
+    | '/_authenticated/reception'
     | '/my-checklist/$id'
     | '/_authenticated/patients/$id'
     | '/_authenticated/visits/$id'
@@ -216,13 +204,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/checkin': {
-      id: '/_authenticated/checkin'
-      path: '/checkin'
-      fullPath: '/checkin'
-      preLoaderRoute: typeof AuthenticatedCheckinRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/crm': {
       id: '/_authenticated/crm'
       path: '/crm'
@@ -244,11 +225,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFollowUpsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/queue': {
-      id: '/_authenticated/queue'
-      path: '/queue'
-      fullPath: '/queue'
-      preLoaderRoute: typeof AuthenticatedQueueRouteImport
+    '/_authenticated/reception': {
+      id: '/_authenticated/reception'
+      path: '/reception'
+      fullPath: '/reception'
+      preLoaderRoute: typeof AuthenticatedReceptionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/my-checklist/$id': {
@@ -284,11 +265,10 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
-  AuthenticatedCheckinRoute: typeof AuthenticatedCheckinRoute
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFollowUpsRoute: typeof AuthenticatedFollowUpsRoute
-  AuthenticatedQueueRoute: typeof AuthenticatedQueueRoute
+  AuthenticatedReceptionRoute: typeof AuthenticatedReceptionRoute
   AuthenticatedPatientsIdRoute: typeof AuthenticatedPatientsIdRoute
   AuthenticatedVisitsIdRoute: typeof AuthenticatedVisitsIdRoute
   AuthenticatedPatientsIndexRoute: typeof AuthenticatedPatientsIndexRoute
@@ -296,11 +276,10 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
-  AuthenticatedCheckinRoute: AuthenticatedCheckinRoute,
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFollowUpsRoute: AuthenticatedFollowUpsRoute,
-  AuthenticatedQueueRoute: AuthenticatedQueueRoute,
+  AuthenticatedReceptionRoute: AuthenticatedReceptionRoute,
   AuthenticatedPatientsIdRoute: AuthenticatedPatientsIdRoute,
   AuthenticatedVisitsIdRoute: AuthenticatedVisitsIdRoute,
   AuthenticatedPatientsIndexRoute: AuthenticatedPatientsIndexRoute,
