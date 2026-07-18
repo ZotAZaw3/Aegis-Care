@@ -23,6 +23,7 @@ import { Route as AuthenticatedReceptionRouteImport } from './routes/_authentica
 import { Route as ApiComplianceJudgeRouteImport } from './routes/api/compliance-judge'
 import { Route as ApiCopilotRouteImport } from './routes/api/copilot'
 import { Route as ApiOpsReportRouteImport } from './routes/api/ops-report'
+import { Route as ApiPatientSummaryRouteImport } from './routes/api/patient-summary'
 import { Route as MyChecklistIdRouteImport } from './routes/my-checklist.$id'
 import { Route as AuthenticatedPatientsIndexRouteImport } from './routes/_authenticated/patients.index'
 import { Route as AuthenticatedPatientsIdRouteImport } from './routes/_authenticated/patients.$id'
@@ -97,6 +98,11 @@ const ApiOpsReportRoute = ApiOpsReportRouteImport.update({
   path: '/api/ops-report',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPatientSummaryRoute = ApiPatientSummaryRouteImport.update({
+  id: '/api/patient-summary',
+  path: '/api/patient-summary',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MyChecklistIdRoute = MyChecklistIdRouteImport.update({
   id: '/my-checklist/$id',
   path: '/my-checklist/$id',
@@ -133,6 +139,7 @@ export interface FileRoutesByFullPath {
   '/api/compliance-judge': typeof ApiComplianceJudgeRoute
   '/api/copilot': typeof ApiCopilotRoute
   '/api/ops-report': typeof ApiOpsReportRoute
+  '/api/patient-summary': typeof ApiPatientSummaryRoute
   '/my-checklist/$id': typeof MyChecklistIdRoute
   '/patients/$id': typeof AuthenticatedPatientsIdRoute
   '/visits/$id': typeof AuthenticatedVisitsIdRoute
@@ -152,6 +159,7 @@ export interface FileRoutesByTo {
   '/api/compliance-judge': typeof ApiComplianceJudgeRoute
   '/api/copilot': typeof ApiCopilotRoute
   '/api/ops-report': typeof ApiOpsReportRoute
+  '/api/patient-summary': typeof ApiPatientSummaryRoute
   '/my-checklist/$id': typeof MyChecklistIdRoute
   '/patients/$id': typeof AuthenticatedPatientsIdRoute
   '/visits/$id': typeof AuthenticatedVisitsIdRoute
@@ -173,6 +181,7 @@ export interface FileRoutesById {
   '/api/compliance-judge': typeof ApiComplianceJudgeRoute
   '/api/copilot': typeof ApiCopilotRoute
   '/api/ops-report': typeof ApiOpsReportRoute
+  '/api/patient-summary': typeof ApiPatientSummaryRoute
   '/my-checklist/$id': typeof MyChecklistIdRoute
   '/_authenticated/patients/$id': typeof AuthenticatedPatientsIdRoute
   '/_authenticated/visits/$id': typeof AuthenticatedVisitsIdRoute
@@ -194,6 +203,7 @@ export interface FileRouteTypes {
     | '/api/compliance-judge'
     | '/api/copilot'
     | '/api/ops-report'
+    | '/api/patient-summary'
     | '/my-checklist/$id'
     | '/patients/$id'
     | '/visits/$id'
@@ -213,6 +223,7 @@ export interface FileRouteTypes {
     | '/api/compliance-judge'
     | '/api/copilot'
     | '/api/ops-report'
+    | '/api/patient-summary'
     | '/my-checklist/$id'
     | '/patients/$id'
     | '/visits/$id'
@@ -233,6 +244,7 @@ export interface FileRouteTypes {
     | '/api/compliance-judge'
     | '/api/copilot'
     | '/api/ops-report'
+    | '/api/patient-summary'
     | '/my-checklist/$id'
     | '/_authenticated/patients/$id'
     | '/_authenticated/visits/$id'
@@ -246,6 +258,7 @@ export interface RootRouteChildren {
   ApiComplianceJudgeRoute: typeof ApiComplianceJudgeRoute
   ApiCopilotRoute: typeof ApiCopilotRoute
   ApiOpsReportRoute: typeof ApiOpsReportRoute
+  ApiPatientSummaryRoute: typeof ApiPatientSummaryRoute
   MyChecklistIdRoute: typeof MyChecklistIdRoute
 }
 
@@ -349,6 +362,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiOpsReportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/patient-summary': {
+      id: '/api/patient-summary'
+      path: '/api/patient-summary'
+      fullPath: '/api/patient-summary'
+      preLoaderRoute: typeof ApiPatientSummaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/my-checklist/$id': {
       id: '/my-checklist/$id'
       path: '/my-checklist/$id'
@@ -418,6 +438,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiComplianceJudgeRoute: ApiComplianceJudgeRoute,
   ApiCopilotRoute: ApiCopilotRoute,
   ApiOpsReportRoute: ApiOpsReportRoute,
+  ApiPatientSummaryRoute: ApiPatientSummaryRoute,
   MyChecklistIdRoute: MyChecklistIdRoute,
 }
 export const routeTree = rootRouteImport

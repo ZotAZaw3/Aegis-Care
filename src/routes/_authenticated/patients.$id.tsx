@@ -10,11 +10,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { AlertTriangle, Sparkles, Trash2 } from "lucide-react";
+import { AlertTriangle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { SafetyPanel } from "@/components/dentist/safety-panel";
 import { DentalRecord } from "@/components/patient/dental-record";
 import { LabsHistory } from "@/components/patient/labs-history";
+import { PatientSummaryDialog } from "@/components/patient/patient-summary-dialog";
 
 export const Route = createFileRoute("/_authenticated/patients/$id")({
   component: PatientDetail,
@@ -86,8 +87,6 @@ function PatientDetail() {
 
   if (!patient) return null;
 
-  const summarize = () => toast.info(t("summary_coming_soon"));
-
   return (
     <div className="space-y-4 max-w-3xl">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -99,10 +98,7 @@ function PatientDetail() {
             {patient.dob && <span>{t("dob")}: {patient.dob}</span>}
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={summarize}>
-          <Sparkles className="h-4 w-4" />
-          {t("summarize")}
-        </Button>
+        <PatientSummaryDialog patientId={id} patientName={patient.full_name ?? "—"} />
       </div>
 
       {allergies && allergies.length > 0 && (
