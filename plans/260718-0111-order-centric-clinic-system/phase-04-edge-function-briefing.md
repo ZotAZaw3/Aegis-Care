@@ -8,7 +8,8 @@
 ## Context Links
 - Brainstorm §2 (retrieval KHÔNG inference), §5 (bản tóm tắt bệnh sử LLM), §7.1 Lane2, §11 (tiêu chí demo: briefing có trích dẫn).
 - Nguồn dữ liệu: `emr_*` (Phase 02), `dental_snomed_whitelist` (Phase 03).
-- Runtime chốt: Supabase Edge Function gọi Anthropic API (Claude), key trong function secrets.
+- Runtime: Supabase Edge Function gọi **OpenAI API — model `gpt-4o-mini`** (TẠM đổi từ Anthropic; key `OPENAI_API_KEY` trong function secrets). Đổi lại Anthropic sau chỉ cần thay endpoint+model+key.
+- Auth: dùng JWT của người gọi (RLS staff-read của emr_* tự lo) — KHÔNG cần service-role key trong function.
 
 ## Overview
 - **Priority:** P0 — đây là "AI" rõ nhất để demo.
