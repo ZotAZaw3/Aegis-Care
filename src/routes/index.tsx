@@ -1,6 +1,7 @@
 import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
 import { ShieldCheck, Stethoscope } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { landingFor } from "@/lib/resolve-home";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/language-toggle";
@@ -13,12 +14,12 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { user, loading } = useAuth();
+  const { user, loading, roles } = useAuth();
   if (loading)
     return (
       <div className="min-h-screen flex items-center justify-center text-muted-foreground">…</div>
     );
-  if (user) return <Navigate to="/dashboard" replace />;
+  if (user) return <Navigate to={landingFor(roles) as string} replace />;
   return <LandingPage />;
 }
 

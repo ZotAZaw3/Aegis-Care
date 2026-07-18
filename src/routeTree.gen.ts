@@ -13,9 +13,12 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedClinicRouteImport } from './routes/_authenticated/clinic'
 import { Route as AuthenticatedCrmRouteImport } from './routes/_authenticated/crm'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedExecutionRouteImport } from './routes/_authenticated/execution'
 import { Route as AuthenticatedFollowUpsRouteImport } from './routes/_authenticated/follow-ups'
+import { Route as AuthenticatedLabRouteImport } from './routes/_authenticated/lab'
 import { Route as AuthenticatedReceptionRouteImport } from './routes/_authenticated/reception'
 import { Route as ApiComplianceJudgeRouteImport } from './routes/api/compliance-judge'
 import { Route as ApiCopilotRouteImport } from './routes/api/copilot'
@@ -44,6 +47,11 @@ const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedClinicRoute = AuthenticatedClinicRouteImport.update({
+  id: '/clinic',
+  path: '/clinic',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCrmRoute = AuthenticatedCrmRouteImport.update({
   id: '/crm',
   path: '/crm',
@@ -54,9 +62,19 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedExecutionRoute = AuthenticatedExecutionRouteImport.update({
+  id: '/execution',
+  path: '/execution',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedFollowUpsRoute = AuthenticatedFollowUpsRouteImport.update({
   id: '/follow-ups',
   path: '/follow-ups',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedLabRoute = AuthenticatedLabRouteImport.update({
+  id: '/lab',
+  path: '/lab',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedReceptionRoute = AuthenticatedReceptionRouteImport.update({
@@ -105,9 +123,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/clinic': typeof AuthenticatedClinicRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/execution': typeof AuthenticatedExecutionRoute
   '/follow-ups': typeof AuthenticatedFollowUpsRoute
+  '/lab': typeof AuthenticatedLabRoute
   '/reception': typeof AuthenticatedReceptionRoute
   '/api/compliance-judge': typeof ApiComplianceJudgeRoute
   '/api/copilot': typeof ApiCopilotRoute
@@ -121,9 +142,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/admin': typeof AuthenticatedAdminRoute
+  '/clinic': typeof AuthenticatedClinicRoute
   '/crm': typeof AuthenticatedCrmRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/execution': typeof AuthenticatedExecutionRoute
   '/follow-ups': typeof AuthenticatedFollowUpsRoute
+  '/lab': typeof AuthenticatedLabRoute
   '/reception': typeof AuthenticatedReceptionRoute
   '/api/compliance-judge': typeof ApiComplianceJudgeRoute
   '/api/copilot': typeof ApiCopilotRoute
@@ -139,9 +163,12 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/clinic': typeof AuthenticatedClinicRoute
   '/_authenticated/crm': typeof AuthenticatedCrmRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/execution': typeof AuthenticatedExecutionRoute
   '/_authenticated/follow-ups': typeof AuthenticatedFollowUpsRoute
+  '/_authenticated/lab': typeof AuthenticatedLabRoute
   '/_authenticated/reception': typeof AuthenticatedReceptionRoute
   '/api/compliance-judge': typeof ApiComplianceJudgeRoute
   '/api/copilot': typeof ApiCopilotRoute
@@ -157,9 +184,12 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/admin'
+    | '/clinic'
     | '/crm'
     | '/dashboard'
+    | '/execution'
     | '/follow-ups'
+    | '/lab'
     | '/reception'
     | '/api/compliance-judge'
     | '/api/copilot'
@@ -173,9 +203,12 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/admin'
+    | '/clinic'
     | '/crm'
     | '/dashboard'
+    | '/execution'
     | '/follow-ups'
+    | '/lab'
     | '/reception'
     | '/api/compliance-judge'
     | '/api/copilot'
@@ -190,9 +223,12 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/admin'
+    | '/_authenticated/clinic'
     | '/_authenticated/crm'
     | '/_authenticated/dashboard'
+    | '/_authenticated/execution'
     | '/_authenticated/follow-ups'
+    | '/_authenticated/lab'
     | '/_authenticated/reception'
     | '/api/compliance-judge'
     | '/api/copilot'
@@ -243,6 +279,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/clinic': {
+      id: '/_authenticated/clinic'
+      path: '/clinic'
+      fullPath: '/clinic'
+      preLoaderRoute: typeof AuthenticatedClinicRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/crm': {
       id: '/_authenticated/crm'
       path: '/crm'
@@ -257,11 +300,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/execution': {
+      id: '/_authenticated/execution'
+      path: '/execution'
+      fullPath: '/execution'
+      preLoaderRoute: typeof AuthenticatedExecutionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/follow-ups': {
       id: '/_authenticated/follow-ups'
       path: '/follow-ups'
       fullPath: '/follow-ups'
       preLoaderRoute: typeof AuthenticatedFollowUpsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/lab': {
+      id: '/_authenticated/lab'
+      path: '/lab'
+      fullPath: '/lab'
+      preLoaderRoute: typeof AuthenticatedLabRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/reception': {
@@ -325,9 +382,12 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedClinicRoute: typeof AuthenticatedClinicRoute
   AuthenticatedCrmRoute: typeof AuthenticatedCrmRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedExecutionRoute: typeof AuthenticatedExecutionRoute
   AuthenticatedFollowUpsRoute: typeof AuthenticatedFollowUpsRoute
+  AuthenticatedLabRoute: typeof AuthenticatedLabRoute
   AuthenticatedReceptionRoute: typeof AuthenticatedReceptionRoute
   AuthenticatedPatientsIdRoute: typeof AuthenticatedPatientsIdRoute
   AuthenticatedVisitsIdRoute: typeof AuthenticatedVisitsIdRoute
@@ -336,9 +396,12 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedClinicRoute: AuthenticatedClinicRoute,
   AuthenticatedCrmRoute: AuthenticatedCrmRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedExecutionRoute: AuthenticatedExecutionRoute,
   AuthenticatedFollowUpsRoute: AuthenticatedFollowUpsRoute,
+  AuthenticatedLabRoute: AuthenticatedLabRoute,
   AuthenticatedReceptionRoute: AuthenticatedReceptionRoute,
   AuthenticatedPatientsIdRoute: AuthenticatedPatientsIdRoute,
   AuthenticatedVisitsIdRoute: AuthenticatedVisitsIdRoute,

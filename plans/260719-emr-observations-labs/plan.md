@@ -35,7 +35,7 @@ Mã dental-relevant CÓ THẬT: 6301-6 INR (4465) · 777-3 tiểu cầu (37892) 
 ## Trạng thái triển khai (2026-07-19)
 - **P01 HOÀN TẤT thực thi:** migration áp + ETL nạp 319,175 observations/800 BN; verify 150 BN có INR (khớp), parse đúng. Demo: BN `e15aa738` INR=2.8 + warfarin.
 - **P02/P03/P04 code xong** (tsc/build sạch). Chờ áp migration `20260719100100` (get_safety_panel +observations, get_observation_history) để test killer demo + copilot.
-- **P05 backend xong** (migration `20260719100200`: ALTER lab_orders + trigger emit clinic observation). **UI nhập kết quả TÁCH sang phiên sau** (repo chưa có màn lab-tech hoàn tất lab).
+- **P05 backend xong** (migration `20260719100200`: ALTER lab_orders + trigger emit clinic observation). **UI nhập kết quả** → đảm nhận bởi plan `260719-ui-role-workspaces` **P03** (Lab workspace `/lab` + form nhập KQ).
 - **P06 code xong** (migration `20260719100300`: CREATE OR REPLACE get_ops_metrics + highlight anticoag_missing_inr).
 - **Migration:** `100100`/`100200`/`100300` ĐÃ ÁP + verify. Còn `100400` (fix W1: observed_at SET NOT NULL) CHỜ ÁP.
 - **Verify đã chạy (service key):** get_safety_panel trả 10 observations đúng value+đơn vị+ngày+ref; get_observation_history INR 7 dòng; get_ops_metrics.highlights.anticoag_missing_inr=253.

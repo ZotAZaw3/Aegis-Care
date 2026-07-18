@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import { createFileRoute, Link, Navigate, Outlet, useRouterState } from "@tanstack/react-router";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { useAuth } from "@/lib/auth";
+import { WORKSPACE_PATHS, setLastWorkspace } from "@/lib/resolve-home";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { LanguageToggle } from "@/components/language-toggle";
@@ -20,8 +22,11 @@ function AuthedLayout() {
   const { user, loading, roles, signOut } = useAuth();
   const { t } = useI18n();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
-  // The home screen is itself the chat surface — the floating copilot bubble would be redundant there.
-  const isHome = pathname === "/dashboard";
+
+  // Nhớ workspace cuối để lần đăng nhập sau về đúng chỗ (landingFor).
+  useEffect(() => {
+    if (WORKSPACE_PATHS.includes(pathname)) setLastWorkspace(pathname);
+  }, [pathname]);
 
   if (loading)
     return (
@@ -77,7 +82,7 @@ function AuthedLayout() {
             </main>
           </div>
         </div>
-        {roles.length > 0 && !isHome && <CopilotChat />}
+        {roles.length > 0 && <CopilotChat />}
       </SidebarProvider>
     </CopilotProvider>
   );

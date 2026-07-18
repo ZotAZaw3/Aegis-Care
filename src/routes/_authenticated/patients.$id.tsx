@@ -13,6 +13,7 @@ import { AlertTriangle, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { SafetyPanel } from "@/components/dentist/safety-panel";
 import { DentalRecord } from "@/components/patient/dental-record";
+import { LabsHistory } from "@/components/patient/labs-history";
 
 export const Route = createFileRoute("/_authenticated/patients/$id")({
   component: PatientDetail,
@@ -118,6 +119,8 @@ function PatientDetail() {
         <DentalRecord patientId={id} />
       </div>
 
+      <LabsHistory patientId={id} />
+
       <Card>
         <CardHeader><CardTitle>{t("visit_history")}</CardTitle></CardHeader>
         <CardContent className="p-0 divide-y">
@@ -146,7 +149,7 @@ function PatientDetail() {
                 <span className={`text-xs px-2 py-0.5 rounded ${sevClass(a.severity)}`}>{t(a.severity as any)}</span>
                 {a.note && <div className="text-xs text-muted-foreground">{a.note}</div>}
               </div>
-              <Button variant="ghost" size="icon" onClick={() => removeAllergy(a.id)}><Trash2 className="h-4 w-4" /></Button>
+              <Button variant="ghost" size="icon" aria-label={t("delete")} onClick={() => removeAllergy(a.id)}><Trash2 className="h-4 w-4" /></Button>
             </div>
           ))}
           <form onSubmit={addAllergy} className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">

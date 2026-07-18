@@ -1,5 +1,8 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, Users, UserPlus, Shield, ClipboardList, Database } from "lucide-react";
+import {
+  LayoutDashboard, Users, UserPlus, Shield, ClipboardList, Database,
+  Stethoscope, ClipboardCheck, FlaskConical,
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -22,13 +25,19 @@ export function AppSidebar() {
   const isAdmin = roles.includes("admin");
   const has = (...allowed: AppRole[]) => isAdmin || allowed.some((r) => roles.includes(r));
 
+  // Nav theo vai — mỗi role chỉ thấy workspace của mình (admin thấy hết).
   const items = [
-    { title: t("dashboard"), url: "/dashboard", icon: LayoutDashboard },
-    { title: t("patients"), url: "/patients", icon: Users },
+    ...(has("admin") ? [{ title: t("dashboard"), url: "/dashboard", icon: LayoutDashboard }] : []),
+    ...(has("dentist") ? [{ title: t("nav_clinic"), url: "/clinic", icon: Stethoscope }] : []),
+    ...(has("assistant") ? [{ title: t("nav_execution"), url: "/execution", icon: ClipboardCheck }] : []),
+    ...(has("lab_technician") ? [{ title: t("nav_lab"), url: "/lab", icon: FlaskConical }] : []),
     ...(has("receptionist", "assistant")
       ? [{ title: t("reception_management"), url: "/reception", icon: UserPlus }]
       : []),
-    { title: t("follow_ups"), url: "/follow-ups", icon: ClipboardList },
+    { title: t("patients"), url: "/patients", icon: Users },
+    ...(has("dentist", "receptionist")
+      ? [{ title: t("follow_ups"), url: "/follow-ups", icon: ClipboardList }]
+      : []),
     ...(isAdmin ? [{ title: t("crm"), url: "/crm", icon: Database }] : []),
   ];
 
