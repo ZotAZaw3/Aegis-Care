@@ -376,6 +376,17 @@ const dict = {
     copilot_suggest_patient: "Bệnh nhân này cần lưu ý gì trước thủ thuật?",
     copilot_suggest_consent: "Quy định nào bắt buộc cam kết trước thủ thuật?",
     copilot_suggest_pending: "Có y lệnh nào đang treo không?",
+    // Home (chat-first landing)
+    home_greeting: "Chào bạn",
+    home_all_clear: "Không có việc nào cần xử lý ngay bây giờ.",
+    home_ui_preview: "UI xem trước",
+    booking_dialog_title: "Đặt lịch hẹn",
+    booking_patient: "Bệnh nhân",
+    booking_date: "Ngày hẹn",
+    booking_time_slot: "Khung giờ",
+    booking_note: "Ghi chú",
+    booking_confirm: "Xác nhận đặt lịch",
+    booking_wip_note: "Tính năng đang được phát triển — đây là giao diện xem trước, chưa lưu dữ liệu thật.",
   },
   en: {
     app_name: "Dental Compliance",
@@ -750,6 +761,17 @@ const dict = {
     copilot_suggest_patient: "What should I watch for before this patient's procedure?",
     copilot_suggest_consent: "Which regulation requires consent before a procedure?",
     copilot_suggest_pending: "Are there any hanging orders?",
+    // Home (chat-first landing)
+    home_greeting: "Hello",
+    home_all_clear: "Nothing needs your attention right now.",
+    home_ui_preview: "UI preview",
+    booking_dialog_title: "Book an appointment",
+    booking_patient: "Patient",
+    booking_date: "Appointment date",
+    booking_time_slot: "Time slot",
+    booking_note: "Note",
+    booking_confirm: "Confirm booking",
+    booking_wip_note: "This feature is still in development — this is a preview UI, nothing is saved yet.",
   },
 } as const;
 
