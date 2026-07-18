@@ -4,6 +4,9 @@ import { useI18n } from "@/lib/i18n";
 
 const labelMap: Record<string, string> = {
   dashboard: "dashboard",
+  clinic: "nav_clinic",
+  execution: "nav_execution",
+  lab: "nav_lab",
   patients: "patients",
   reception: "reception_management",
   visits: "sessions",
@@ -11,6 +14,9 @@ const labelMap: Record<string, string> = {
   admin: "admin",
   "follow-ups": "follow_ups",
 };
+
+// uuid segment (vd /visits/<uuid>) → hiển thị "Chi tiết" thay vì chuỗi thô.
+const isUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 
 export function Breadcrumbs() {
   const { t } = useI18n();
@@ -23,7 +29,7 @@ export function Breadcrumbs() {
   segments.forEach((seg) => {
     acc += "/" + seg;
     const key = labelMap[seg];
-    const label = key ? t(key) : decodeURIComponent(seg);
+    const label = key ? t(key) : isUuid(seg) ? t("detail") : decodeURIComponent(seg);
     crumbs.push({ href: acc, label });
   });
 

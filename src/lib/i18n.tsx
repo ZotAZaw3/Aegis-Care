@@ -449,6 +449,8 @@ const dict = {
     lab_value_required: "Đã chọn loại kết quả — cần nhập giá trị.",
     lab_value_invalid: "Giá trị không hợp lệ (phải là số).",
     execution_subtitle: "Y lệnh được giao cho trợ thủ cần thực thi",
+    detail: "Chi tiết",
+    tab_overview: "Tổng quan",
   },
   en: {
     app_name: "Dental Compliance",
@@ -896,6 +898,8 @@ const dict = {
     lab_value_required: "Result type selected — a value is required.",
     lab_value_invalid: "Invalid value (must be a number).",
     execution_subtitle: "Orders assigned to assistants to execute",
+    detail: "Detail",
+    tab_overview: "Overview",
   },
 } as const;
 

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertTriangle, Sparkles, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { SafetyPanel } from "@/components/dentist/safety-panel";
@@ -114,15 +115,24 @@ function PatientDetail() {
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <SafetyPanel patientId={id} />
-        <DentalRecord patientId={id} />
-      </div>
+      <Tabs defaultValue="overview">
+        <TabsList>
+          <TabsTrigger value="overview">{t("tab_overview")}</TabsTrigger>
+          <TabsTrigger value="history">{t("visit_history")}</TabsTrigger>
+          <TabsTrigger value="allergies">{t("allergies")}</TabsTrigger>
+        </TabsList>
 
-      <LabsHistory patientId={id} />
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <SafetyPanel patientId={id} />
+            <DentalRecord patientId={id} />
+          </div>
+          <LabsHistory patientId={id} />
+        </TabsContent>
 
-      <Card>
-        <CardHeader><CardTitle>{t("visit_history")}</CardTitle></CardHeader>
+        <TabsContent value="history">
+          <Card>
+            <CardHeader><CardTitle>{t("visit_history")}</CardTitle></CardHeader>
         <CardContent className="p-0 divide-y">
           {!visits || visits.length === 0 ? (
             <div className="p-4 text-sm text-muted-foreground">{t("no_visits")}</div>
@@ -136,11 +146,13 @@ function PatientDetail() {
               <span className="text-xs text-muted-foreground">{t(v.status as any)}</span>
             </Link>
           ))}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
-      <Card>
-        <CardHeader><CardTitle>{t("allergies")}</CardTitle></CardHeader>
+        <TabsContent value="allergies">
+          <Card>
+            <CardHeader><CardTitle>{t("allergies")}</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           {allergies?.map((a) => (
             <div key={a.id} className="flex items-center justify-between gap-2 p-2 rounded border">
@@ -168,8 +180,10 @@ function PatientDetail() {
             <Button type="submit">{t("add_allergy")}</Button>
             <div className="md:col-span-4"><Label>{t("note")}</Label><Input value={form.note} onChange={(e) => setForm({ ...form, note: e.target.value })} /></div>
           </form>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -36,7 +36,7 @@ function AuthedLayout() {
 
   return (
     <CopilotProvider>
-      <SidebarProvider defaultOpen={false}>
+      <SidebarProvider defaultOpen={true}>
         <div className="flex h-svh w-full flex-col overflow-hidden">
           <header className="z-30 h-14 shrink-0 flex items-center justify-between border-b bg-background px-3 gap-2 shadow-sm">
             <div className="flex items-center gap-2">

@@ -11,7 +11,6 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { useI18n } from "@/lib/i18n";
 import { useAuth, type AppRole } from "@/lib/auth";
@@ -20,7 +19,6 @@ import { cn } from "@/lib/utils";
 export function AppSidebar() {
   const { t } = useI18n();
   const { roles } = useAuth();
-  const { isMobile, setOpen } = useSidebar();
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const isAdmin = roles.includes("admin");
   const has = (...allowed: AppRole[]) => isAdmin || allowed.some((r) => roles.includes(r));
@@ -42,10 +40,7 @@ export function AppSidebar() {
   ];
 
   return (
-    <div
-      onMouseEnter={() => !isMobile && setOpen(true)}
-      onMouseLeave={() => !isMobile && setOpen(false)}
-    >
+    <div>
       <Sidebar collapsible="icon" className="!top-14 !bottom-0 !h-auto">
         <SidebarContent>
           <SidebarGroup>

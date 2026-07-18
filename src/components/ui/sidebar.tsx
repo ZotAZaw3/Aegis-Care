@@ -222,18 +222,17 @@ const Sidebar = React.forwardRef<
         data-variant={variant}
         data-side={side}
       >
-        {/* This is what handles the sidebar gap on desktop. For collapsible="icon", it
-            stays pinned at the icon width so hover-expanding the panel below never
-            reflows the page — the panel then overlays the content instead. */}
+        {/* Sidebar gap on desktop — reserves layout space so the fixed panel pushes
+            content instead of overlaying it. Width follows state: full when expanded,
+            icon width when collapsed (data-collapsible is set only while collapsed). */}
         <div
           className={cn(
             "relative w-(--sidebar-width) bg-transparent transition-[width] duration-[260ms] ease-linear",
             "group-data-[collapsible=offcanvas]:w-0",
             "group-data-[side=right]:rotate-180",
-            collapsible === "icon" &&
-              (variant === "floating" || variant === "inset"
-                ? "w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]"
-                : "w-(--sidebar-width-icon)"),
+            "group-data-[collapsible=icon]:w-(--sidebar-width-icon)",
+            "group-data-[collapsible=icon]:group-data-[variant=floating]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]",
+            "group-data-[collapsible=icon]:group-data-[variant=inset]:w-[calc(var(--sidebar-width-icon)_+_theme(spacing.4))]",
           )}
         />
         <div
