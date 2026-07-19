@@ -1,0 +1,203 @@
+@startuml aegis_care_class_diagram
+title Aegis Care — Class Diagram (order-centric core domain model)
+skinparam classAttributeIconSize 0
+skinparam wrapWidth 200
+hide circle
+
+enum OrderType {
+  imaging
+  lab
+  procedure
+  medication
+  follow_up
+  referral
+  consent
+}
+
+enum OrderStatus {
+  open
+  routed
+  in_progress
+  awaiting_review
+  closed
+  cancelled
+}
+
+enum OrderCloseMode {
+  invariant
+  evidence
+  manual
+}
+
+enum EvidenceType {
+  file_upload
+  appointment
+  consent_scan
+  record
+  manual_tick
+}
+
+enum ConsentSigner {
+  patient
+  guardian
+}
+
+class Patient {
+  + id: uuid
+  + full_name: text
+  + dob: date
+  + gender: text
+  + phone: text
+  + email: text
+  + contact_prefs: text
+}
+
+class Staff {
+  + id: uuid
+  + user_id: uuid <<FK auth.users>>
+  + full_name: text
+  + license_number: text
+  + specialization: text
+  + active: boolean
+}
+
+class UserRole {
+  + id: uuid
+  + user_id: uuid
+  + role: app_role
+  .. dentist | receptionist | assistant | lab_technician | admin ..
+}
+
+class Department {
+  + id: uuid
+  + code: text <<unique>>
+  .. reception | treatment | imaging | lab | pharmacy ..
+  + name_vi: text
+  + name: text
+  + sort_order: int
+  + active: boolean
+}
+
+class StaffDepartment {
+  + staff_id: uuid <<FK>>
+  + department_id: uuid <<FK>>
+}
+
+class VisitSession {
+  + id: uuid
+  + patient_id: uuid <<FK>>
+  + session_number: int
+  + bed_number: text
+  + status: visit_status
+  + assigned_dentist_id: uuid <<FK Staff>>
+  + procedure_type: procedure_type
+  + diagnosis: text
+  + treatment_plan: text
+  + chief_complaint: text
+}
+
+class KbRule {
+  + id: uuid
+  + procedure_type: procedure_type
+  + order_type: OrderType
+  + title / title_vi: text
+  + assigned_role: app_role
+  + department_id: uuid <<FK>>
+  + mandatory: boolean
+  + requires_consent: boolean
+  + needs_review: boolean
+  + close_mode: OrderCloseMode
+  + evidence_type: EvidenceType
+  + completion_criteria / _vi: text
+  + due_offset_hours: int
+  + active: boolean
+  .. "tri thức thực thi được": rule tự khai báo bước, vai trò, bằng chứng, tiêu chí ..
+}
+
+class MedicalOrder {
+  + id: uuid
+  + visit_session_id: uuid <<FK>>
+  + patient_id: uuid <<FK, denorm>>
+  + parent_order_id: uuid <<FK self>>
+  + order_type: OrderType
+  + procedure_type: procedure_type
+  + title / detail: text
+  + ordered_by: uuid <<FK Staff>>
+  + assigned_role: app_role
+  + department_id: uuid <<FK>>
+  + status: OrderStatus
+  + close_mode: OrderCloseMode
+  + evidence_type: EvidenceType
+  + completion_criteria_vi: text
+  + due_at / opened_at / closed_at: timestamptz
+  + closed_by / cancelled_by: uuid <<FK Staff>>
+  + kb_rule_id: uuid <<FK>>
+  + is_kb_mandatory: boolean
+  + exception_reason: text
+  + cancel_reason: text
+  .. TRỤC của hệ thống — checklist/gate/follow-up đều là 1 row ở đây ..
+}
+
+class Consent {
+  + id: uuid
+  + order_id: uuid <<FK, unique>>
+  + scan_path: text
+  + signer: ConsentSigner
+  + signed_date: date
+  + force_emergency: boolean
+  + force_reason: text
+}
+
+class OrderEvidence {
+  + id: uuid
+  + order_id: uuid <<FK>>
+  + evidence_type: EvidenceType
+  + file_path: text
+  + followup_ref: uuid
+  + consent_id: uuid <<FK>>
+  + submitted_by: uuid <<FK Staff>>
+  + submitted_at: timestamptz
+  .. append-only — không có policy DELETE (audit trail) ..
+}
+
+' ---------------- Relationships ----------------
+Patient "1" -- "0..*" VisitSession
+Patient "1" -- "0..*" MedicalOrder : denorm patient_id
+VisitSession "1" -- "0..*" MedicalOrder
+VisitSession "0..*" --> "0..1" Staff : assigned_dentist_id
+
+Staff "0..*" -- "0..*" Department : StaffDepartment
+(Staff, Department) .. StaffDepartment
+
+Staff "1" -- "0..1" UserRole : user_id
+
+Department "1" -- "0..*" MedicalOrder
+Department "1" -- "0..*" KbRule
+
+KbRule "1" -- "0..*" MedicalOrder : kb_rule_id\n(draft sinh từ rule)
+
+MedicalOrder "0..1" -- "0..*" MedicalOrder : parent_order_id\n(consent con / recall con)
+MedicalOrder "1" -- "0..1" Consent
+MedicalOrder "1" -- "0..*" OrderEvidence
+Consent "1" -- "0..*" OrderEvidence : consent_id
+
+Staff "1" -- "0..*" MedicalOrder : ordered_by / closed_by /\ncancelled_by
+
+MedicalOrder ..> OrderType
+MedicalOrder ..> OrderStatus
+MedicalOrder ..> OrderCloseMode
+MedicalOrder ..> EvidenceType
+Consent ..> ConsentSigner
+KbRule ..> OrderType
+KbRule ..> OrderCloseMode
+KbRule ..> EvidenceType
+
+note top of MedicalOrder
+  Invariant: order_type='consent' BẮT BUỘC có
+  parent_order_id (CHECK constraint
+  consent_needs_parent).
+  status='cancelled' BẮT BUỘC có cancel_reason
+  (CHECK constraint cancel_needs_reason).
+end note
+
+@enduml

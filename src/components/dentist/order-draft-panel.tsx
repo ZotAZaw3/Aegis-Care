@@ -18,7 +18,6 @@ import {
   type DraftDecision,
 } from "@/lib/orders";
 import { getFreshToken } from "@/lib/session-token";
-import { ExceptionDialog } from "./exception-dialog";
 import { ComplianceJudgeDialog, type JudgePayload } from "./compliance-judge-dialog";
 import { CustomOrderForm } from "./custom-order-form";
 
@@ -30,13 +29,16 @@ interface Props {
 
 type DecisionMap = Record<string, { keep: boolean; reason?: string }>;
 
+// Checklist đơn giản: chỉ 2 bước tick tay này — lọc chắc ở client, không phụ thuộc
+// vào việc kb_rules cũ (Chụp X-quang, Nhổ răng…) đã được active=false ở DB hay chưa.
+const CHECKLIST_TITLES = new Set(["Vital signs check", "Sterilization check"]);
+
 export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
   const { t, lang } = useI18n();
   const qc = useQueryClient();
   const [proc, setProc] = useState<string>("");
   const [customOrders, setCustomOrders] = useState<OrderDraft[]>([]);
   const [decisions, setDecisions] = useState<DecisionMap>({});
-  const [exceptionDraft, setExceptionDraft] = useState<OrderDraft | null>(null);
   const [signing, setSigning] = useState(false);
   const [judging, setJudging] = useState(false);
   const [judgeResult, setJudgeResult] = useState<JudgePayload | null>(null);
@@ -47,33 +49,26 @@ export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
     queryFn: async () => {
       const { data, error } = await ordersDb.rpc("get_order_drafts", { p_procedure_type: proc });
       if (error) throw error;
-      const list = (data as OrderDraft[]) ?? [];
+      const list = ((data as OrderDraft[]) ?? []).filter((d) => CHECKLIST_TITLES.has(d.title));
       return [...list].sort((a, b) => a.sort_order - b.sort_order);
     },
   });
 
   // Nháp KB + y lệnh tùy ý → ký chung qua Compliance Judge.
   const allDrafts = useMemo(() => [...(drafts ?? []), ...customOrders], [drafts, customOrders]);
-  const decisionFor = (d: OrderDraft) => decisions[d.id] ?? { keep: true };
+  // Checklist đơn giản: mặc định untick, không cần lý do khi bỏ tick (không mandatory nữa).
+  // Y lệnh tùy ý (custom) vẫn mặc định keep — bác sĩ đã chủ động thêm thì mặc định giữ lại.
+  const decisionFor = (d: OrderDraft) => decisions[d.id] ?? { keep: !!d.is_custom };
 
   const toggleKeep = (d: OrderDraft, keep: boolean) => {
-    if (!keep && d.mandatory) {
-      setExceptionDraft(d); // must justify dropping a mandatory step
-      return;
-    }
     setDecisions((s) => ({ ...s, [d.id]: { keep } }));
-  };
-
-  const confirmException = (draftId: string, reason: string) => {
-    setDecisions((s) => ({ ...s, [draftId]: { keep: false, reason } }));
-    setExceptionDraft(null);
   };
 
   const addCustom = (d: OrderDraft) => setCustomOrders((s) => [...s, d]);
 
   const decisionList: DraftDecision[] = useMemo(
     () => allDrafts.map((draft) => {
-      const dec = decisions[draft.id] ?? { keep: true };
+      const dec = decisions[draft.id] ?? { keep: !!draft.is_custom };
       return { draft, keep: dec.keep, exceptionReason: dec.reason };
     }),
     [allDrafts, decisions],
@@ -185,7 +180,7 @@ export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
                     />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5">
-                        <span className={cn("text-sm font-medium", !dec.keep && "line-through")}>{title}</span>
+                        <span className="text-sm font-medium">{title}</span>
                         <Badge variant="outline" className="text-[10px]">{t(d.order_type)}</Badge>
                         {d.is_custom && (
                           <Badge variant="secondary" className="text-[10px]">{t("custom_badge")}</Badge>
@@ -201,9 +196,6 @@ export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
                         )}
                       </div>
                       {d.detail && <p className="mt-0.5 text-xs text-muted-foreground">{d.detail}</p>}
-                      {!dec.keep && dec.reason && (
-                        <p className="mt-1 text-xs text-warning">{t("exception_reason")}: {dec.reason}</p>
-                      )}
                     </div>
                   </li>
                 );
@@ -220,12 +212,6 @@ export function OrderDraftPanel({ sessionId, patientId, staffId }: Props) {
           </>
         )}
       </CardContent>
-
-      <ExceptionDialog
-        draft={exceptionDraft}
-        onClose={() => setExceptionDraft(null)}
-        onConfirm={confirmException}
-      />
 
       <ComplianceJudgeDialog
         result={judgeResult}

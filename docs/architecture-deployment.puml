@@ -1,0 +1,80 @@
+@startuml aegis_care_deployment
+title Aegis Care — Deployment Diagram (2 backends, 1 DB)
+skinparam wrapWidth 220
+skinparam defaultTextAlignment center
+skinparam nodeBackgroundColor #f8f9fa
+skinparam databaseBackgroundColor #eef5ff
+skinparam cloudBackgroundColor #fff4e6
+
+node "Client Device" as ClientDevice {
+  artifact "Browser\nReact 19 + TanStack Router/Query\n(SSR-hydrated SPA)" as Browser
+}
+
+node "Vercel (Edge/Serverless)" as VercelNode {
+  artifact "Nitro server bundle\n(vite.config.ts: nitro() plugin)" as NitroBundle
+  component "TanStack Start API routes\n/api/copilot\n/api/compliance-judge\n/api/ops-report\n/api/patient-summary" as ApiRoutes
+  note bottom of ApiRoutes
+    Server-side compute #1.
+    Mỗi route tự tạo Supabase client
+    từ JWT của caller (anon key +
+    Authorization header) — KHÔNG
+    bao giờ dùng service-role key.
+  end note
+}
+
+cloud "Supabase Cloud\n(project rwvfpjtxcmubjqelsncq)" as SupabaseCloud {
+  node "Postgres" as PGNode {
+    database "medical_orders, kb_rules,\nkb_chunks (pgvector), emr_*,\ndepartments, visit_sessions..." as PGData
+    component "Triggers/Functions\nroute_order(), auto_close_on_evidence(),\ngenerate_recall_order(), RPCs\n(get_ops_metrics, kb_search, ...)" as PGFns
+    note bottom of PGFns
+      Server-side compute #2.
+      Đây là "backend" phần lớn logic
+      nghiệp vụ nằm ở — không phải
+      trong Vercel. RLS enforce theo
+      JWT ở tầng này.
+    end note
+  }
+  component "Auth (GoTrue)" as SupaAuth
+  component "Realtime\n(websocket, postgres_changes)" as SupaRealtime
+  component "Storage" as SupaStorage
+  node "Edge Functions runtime (Deno)" as EdgeNode {
+    artifact "briefing\n(supabase/functions/briefing)" as EdgeBriefing
+    note bottom of EdgeBriefing
+      Edge Function duy nhất — gọi
+      trực tiếp từ browser
+      (BriefingPanel ở /visits/$id),
+      KHÔNG qua Vercel.
+    end note
+  }
+}
+
+cloud "OpenAI API" as OpenAI {
+  component "gpt-4o-mini / gpt-4o\ntext-embedding-3-small" as OpenAIModels
+}
+
+node "Offline / dev-time only\n(không phải runtime deployment)" as OfflineNode {
+  artifact "services/rag-ingest/\n(Python: PDF → chunk → embed)" as RagIngest
+  artifact "scripts/etl-synthea-patients.mjs\n(seed EMR ETL)" as SynEtl
+}
+
+' ---- Runtime traffic ----
+Browser --> NitroBundle : HTTPS\n(SSR pages)
+Browser --> ApiRoutes : HTTPS + JWT\n(copilot chat, judge, ops-report,\npatient-summary)
+Browser --> PGData : HTTPS (PostgREST)\nanon key + JWT → RLS\n("backend #1": client gọi thẳng DB)
+Browser --> SupaAuth : login/session
+Browser --> SupaRealtime : subscribe\n(medical_orders, order_evidence)
+Browser --> SupaStorage : upload evidence files
+Browser --> EdgeBriefing : HTTPS + JWT\n(invoke "briefing")
+
+ApiRoutes --> PGData : PostgREST/RPC\n(client dựng từ JWT caller)
+ApiRoutes --> OpenAIModels : HTTPS\n(OPENAI_API_KEY, server-only secret)
+
+EdgeBriefing --> PGFns : RPC get_briefing_source\n(JWT caller, RLS)
+EdgeBriefing --> OpenAIModels : HTTPS\n(OPENAI_API_KEY secret của Supabase)
+
+PGFns --> PGData : SECURITY DEFINER\n(trigger tự thao tác bảng)
+
+RagIngest ..> PGData : batch INSERT kb_chunks\n(chạy tay/offline, không phải request path)
+SynEtl ..> PGData : batch INSERT emr_*, patients\n(chạy tay/offline)
+
+@enduml

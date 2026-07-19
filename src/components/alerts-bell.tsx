@@ -17,6 +17,7 @@ interface OrderViolation {
   id: string;
   visit_session_id: string;
   title: string;
+  order_type: string;
   violation_kind: ViolationKind;
   due_at: string | null;
 }
@@ -63,7 +64,7 @@ export function AlertsBell() {
     queryFn: async () => {
       const { data, error } = await ordersDb
         .from("order_violations")
-        .select("id, visit_session_id, title, violation_kind, due_at")
+        .select("id, visit_session_id, title, order_type, violation_kind, due_at")
         .order("due_at", { ascending: true, nullsFirst: false })
         .limit(20);
       if (error) throw error;
@@ -154,7 +155,13 @@ export function AlertsBell() {
                     </span>
                   </div>
                   <div className="mt-0.5 truncate text-xs text-muted-foreground">{v.title}</div>
-                  <div className="mt-1 flex items-center gap-1.5">
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    <Badge
+                      variant={v.order_type === "referral" ? "default" : "outline"}
+                      className="text-[10px] whitespace-nowrap"
+                    >
+                      {t(v.order_type)}
+                    </Badge>
                     <Badge variant="destructive" className="text-[10px] whitespace-nowrap">
                       {t(VIOLATION_KIND_KEY[v.violation_kind])}
                     </Badge>

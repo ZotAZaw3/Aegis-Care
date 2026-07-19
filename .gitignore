@@ -47,3 +47,4 @@ synthea-dental-dataset/
 *.njsproj
 *.sln
 *.sw?
+.gstack/

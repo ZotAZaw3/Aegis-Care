@@ -1,6 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
-  LayoutDashboard, Users, UserPlus, Shield, ClipboardList, Database,
+  LayoutDashboard, Users, UserPlus, Shield, ClipboardList,
   Stethoscope, ClipboardCheck, FlaskConical, Sparkles,
 } from "lucide-react";
 import {
@@ -37,7 +37,6 @@ export function AppSidebar() {
     ...(has("dentist", "receptionist")
       ? [{ title: t("follow_ups"), url: "/follow-ups", icon: ClipboardList }]
       : []),
-    ...(isAdmin ? [{ title: t("crm"), url: "/crm", icon: Database }] : []),
   ];
 
   return (

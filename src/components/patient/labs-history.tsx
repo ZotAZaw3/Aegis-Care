@@ -1,10 +1,12 @@
-// Lịch sử xét nghiệm ở hồ sơ BN — get_observation_history (bổ sung SafetyPanel latest).
+// Lịch sử xét nghiệm ở hồ sơ BN — get_observation_history_page (bổ sung SafetyPanel latest).
 // Trình bày SỰ THẬT: value + đơn vị + ngày + tham chiếu KB. KHÔNG phán bất thường.
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { FlaskConical } from "lucide-react";
 import { ordersDb } from "@/lib/orders";
 import { useI18n } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface Obs {
@@ -12,16 +14,27 @@ interface Obs {
   unit: string | null; observed_at: string | null; ref_low: number | null; ref_high: number | null;
 }
 
+const PAGE_SIZE = 20;
+
 export function LabsHistory({ patientId }: { patientId: string }) {
   const { t } = useI18n();
-  const { data, isLoading } = useQuery<Obs[]>({
-    queryKey: ["obs-history", patientId],
+  const [page, setPage] = useState(0);
+  const { data, isLoading } = useQuery<{ rows: Obs[]; total: number }>({
+    queryKey: ["obs-history", patientId, page],
     queryFn: async () => {
-      const { data, error } = await ordersDb.rpc("get_observation_history", { p_patient_id: patientId });
+      const { data, error } = await ordersDb.rpc("get_observation_history_page", {
+        p_patient_id: patientId,
+        p_limit: PAGE_SIZE,
+        p_offset: page * PAGE_SIZE,
+      });
       if (error) throw error;
-      return (data as Obs[]) ?? [];
+      const result = data as { rows: Obs[]; total: number } | null;
+      return { rows: result?.rows ?? [], total: result?.total ?? 0 };
     },
   });
+  const rows = data?.rows;
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
     <Card>
@@ -34,10 +47,10 @@ export function LabsHistory({ patientId }: { patientId: string }) {
       <CardContent className="p-0 divide-y">
         {isLoading ? (
           <div className="p-4"><Skeleton className="h-8 w-full" /></div>
-        ) : !data || data.length === 0 ? (
+        ) : !rows || rows.length === 0 ? (
           <div className="p-4 text-sm text-muted-foreground">{t("no_records")}</div>
         ) : (
-          data.slice(0, 50).map((o, i) => (
+          rows.map((o, i) => (
             <div key={i} className="flex items-center justify-between gap-2 p-3 text-sm">
               <span className="min-w-0">
                 <span className="font-medium">{o.label_vi ?? o.loinc_code}</span>{" "}
@@ -49,6 +62,13 @@ export function LabsHistory({ patientId }: { patientId: string }) {
               </span>
             </div>
           ))
+        )}
+        {total > PAGE_SIZE && (
+          <div className="flex items-center justify-center gap-3 p-3">
+            <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>{t("page_prev")}</Button>
+            <span className="text-sm text-muted-foreground tabular-nums">{t("page_of").replace("{a}", String(page + 1)).replace("{b}", String(totalPages))}</span>
+            <Button variant="outline" size="sm" disabled={page + 1 >= totalPages} onClick={() => setPage((p) => p + 1)}>{t("page_next")}</Button>
+          </div>
         )}
       </CardContent>
     </Card>

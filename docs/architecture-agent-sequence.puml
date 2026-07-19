@@ -1,0 +1,42 @@
+@startuml aegis_care_agent_sequence
+title Aegis Care — AI Agent orchestration (1 câu hỏi thật sự chạy qua hệ thống ra sao)
+skinparam wrapWidth 200
+skinparam sequenceMessageAlign center
+autonumber
+
+actor "Clinician" as User
+participant "/assistant\n(React)" as UI
+participant "POST /api/copilot\n(Vercel/Nitro)" as Route
+participant "Orchestrator\ngenerateText()\nstopWhen: stepCountIs(5-12)" as Orch
+participant "Tool: safety_panel /\npatient_labs / kb_search / ..." as Tool
+database "Postgres (RLS theo JWT)\nRPC / kb_chunks / emr_*" as PG
+participant "OpenAI\ngpt-4o-mini" as LLM
+
+User -> UI : nhập câu hỏi\n("INR bệnh nhân X gần nhất?")
+UI -> Route : POST {messages, patient_id}\nAuthorization: Bearer <JWT>
+Route -> Route : dựng Supabase client\ntừ JWT caller (KHÔNG service-role)
+Route -> Orch : generateText({system, messages,\ntools, stopWhen})
+
+loop tối đa N bước (stepCountIs)
+  Orch -> LLM : gửi context + tool schemas
+  LLM --> Orch : chọn tool cần gọi\n(vd patient_labs)
+  Orch -> Tool : execute({patient_id, codes})
+  Tool -> PG : rpc("get_observation_history", ...)\nRLS staff-read áp theo JWT
+  PG --> Tool : rows (value, unit, date, ref range)
+  Tool --> Orch : {labs: [...]}  + citation
+  Orch -> LLM : trả kết quả tool vào context
+end
+
+LLM --> Orch : text cuối (retrieval-only,\nkhông chẩn đoán/khuyến nghị)
+Orch --> Route : { answer, citations[], tool_calls[] }
+Route --> UI : JSON response
+UI --> User : hiển thị câu trả lời\n+ trích dẫn nguồn
+
+note over Orch, LLM
+  Guardrail: system prompt chặn câu mang tính suy diễn
+  (nên/khuyến nghị/nguy cơ/chẩn đoán...) — nếu LLM
+  vi phạm, câu trả lời vẫn chỉ là NARRATION của
+  dữ liệu tool trả về, không có quyền tự quyết.
+end note
+
+@enduml

@@ -44,19 +44,25 @@ function PatientDetail() {
     },
   });
 
-  const { data: visits } = useQuery({
-    queryKey: ["patient-visits", id],
+  const [visitPage, setVisitPage] = useState(0);
+  const VISIT_PAGE_SIZE = 10;
+  const { data: visitData } = useQuery({
+    queryKey: ["patient-visits", id, visitPage],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const from = visitPage * VISIT_PAGE_SIZE;
+      const { data, count, error } = await supabase
         .from("visit_sessions")
-        .select("id, created_at, session_number, bed_number, procedure_type, diagnosis, status")
+        .select("id, created_at, session_number, bed_number, procedure_type, diagnosis, status", { count: "exact" })
         .eq("patient_id", id)
         .order("created_at", { ascending: false })
-        .limit(20);
+        .range(from, from + VISIT_PAGE_SIZE - 1);
       if (error) throw error;
-      return data;
+      return { rows: data, total: count ?? 0 };
     },
   });
+  const visits = visitData?.rows;
+  const visitTotal = visitData?.total ?? 0;
+  const visitTotalPages = Math.max(1, Math.ceil(visitTotal / VISIT_PAGE_SIZE));
 
   // Feed the open patient into the global copilot context.
   const { setPatient, clearPatient } = useCopilot();
@@ -143,6 +149,13 @@ function PatientDetail() {
             </Link>
           ))}
             </CardContent>
+            {visitTotal > VISIT_PAGE_SIZE && (
+              <div className="flex items-center justify-center gap-3 p-3">
+                <Button variant="outline" size="sm" disabled={visitPage === 0} onClick={() => setVisitPage((p) => Math.max(0, p - 1))}>{t("page_prev")}</Button>
+                <span className="text-sm text-muted-foreground tabular-nums">{t("page_of").replace("{a}", String(visitPage + 1)).replace("{b}", String(visitTotalPages))}</span>
+                <Button variant="outline" size="sm" disabled={visitPage + 1 >= visitTotalPages} onClick={() => setVisitPage((p) => p + 1)}>{t("page_next")}</Button>
+              </div>
+            )}
           </Card>
         </TabsContent>
 

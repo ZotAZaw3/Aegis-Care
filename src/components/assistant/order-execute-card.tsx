@@ -54,11 +54,10 @@ export function OrderExecuteCard({ order, staffId, onDone }: Props) {
   };
 
   return (
-    <div className="rounded-md border p-3 space-y-2">
+    <div className="w-[300px] shrink-0 space-y-2 rounded-md border p-2.5">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-sm font-medium">{order.title}</div>
-          {order.detail && <div className="text-xs text-muted-foreground">{order.detail}</div>}
+          <div className="truncate text-sm font-medium">{order.title}</div>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
           <Badge variant="secondary" className="text-[10px]">{t(`ev_type_${evidenceType}`)}</Badge>
@@ -71,6 +70,8 @@ export function OrderExecuteCard({ order, staffId, onDone }: Props) {
         </div>
       </div>
 
+      {order.detail && <div className="text-xs text-muted-foreground">{order.detail}</div>}
+
       {order.completion_criteria_vi && (
         <div className="flex items-start gap-1.5 rounded-md bg-muted/50 px-2 py-1.5 text-xs text-muted-foreground">
           <CircleCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
@@ -79,26 +80,11 @@ export function OrderExecuteCard({ order, staffId, onDone }: Props) {
       )}
 
       {!canClose ? (
-        <div className="rounded-md border border-warning/40 bg-warning/10 px-2 py-2 text-xs text-muted-foreground">
+        <div className="rounded-md border border-warning/40 bg-warning/10 px-2 py-1.5 text-xs text-muted-foreground">
           {t("not_in_department")}
         </div>
       ) : evidenceMode ? (
         <div className="space-y-2">
-          <Input
-            type="file"
-            accept="image/*,application/pdf"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-            disabled={busy}
-          />
-          <Button
-            size="sm"
-            className="w-full"
-            disabled={busy || !file}
-            onClick={() => run(() => uploadEvidence(order.id, file, "file_upload", staffId!, note || undefined), "evidence_submitted")}
-          >
-            <Paperclip className="h-3.5 w-3.5" />
-            {t("upload_evidence")}
-          </Button>
           <Textarea
             rows={2}
             placeholder={t("record_note")}
@@ -116,6 +102,23 @@ export function OrderExecuteCard({ order, staffId, onDone }: Props) {
             <FileText className="h-3.5 w-3.5" />
             {t("attach_record")}
           </Button>
+          <div className="flex items-center gap-2">
+            <Input
+              type="file"
+              accept="image/*,application/pdf"
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              disabled={busy}
+              className="h-8 flex-1 text-xs file:text-xs"
+            />
+            <Button
+              size="sm"
+              disabled={busy || !file}
+              onClick={() => run(() => uploadEvidence(order.id, file, "file_upload", staffId!, note || undefined), "evidence_submitted")}
+            >
+              <Paperclip className="h-3.5 w-3.5" />
+              {t("mark_done")}
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="space-y-2">

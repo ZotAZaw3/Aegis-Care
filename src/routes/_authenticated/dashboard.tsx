@@ -1,13 +1,20 @@
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth, useHasRole } from "@/lib/auth";
 import { resolveHome } from "@/lib/resolve-home";
 import { OpsKpiCards } from "@/components/manager/ops-kpi-cards";
-import { OpsTrendChart } from "@/components/manager/ops-trend-chart";
-import { OpsWorkloadByRole } from "@/components/manager/ops-workload-by-role";
 import { OpsReportPanel } from "@/components/manager/ops-report-panel";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// recharts (+ d3) chỉ cần cho 2 chart này — lazy-load để không kéo vào critical path của /dashboard.
+const OpsTrendChart = lazy(() =>
+  import("@/components/manager/ops-trend-chart").then((m) => ({ default: m.OpsTrendChart })),
+);
+const OpsWorkloadByRole = lazy(() =>
+  import("@/components/manager/ops-workload-by-role").then((m) => ({ default: m.OpsWorkloadByRole })),
+);
 
 // Dashboard = báo cáo vận hành (Ops) cho ADMIN + BÁC SĨ (has_ops_access). Vai khác redirect về workspace.
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -36,8 +43,12 @@ function DashboardPage() {
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-4">
       <OpsKpiCards />
       <div className="grid gap-4 lg:grid-cols-2">
-        <OpsTrendChart />
-        <OpsWorkloadByRole />
+        <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+          <OpsTrendChart />
+        </Suspense>
+        <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+          <OpsWorkloadByRole />
+        </Suspense>
       </div>
       <OpsReportPanel />
     </div>

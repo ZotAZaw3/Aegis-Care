@@ -16,31 +16,40 @@ interface RecallOrder extends ActiveOrder {
   patients?: { full_name: string } | { full_name: string }[] | null;
 }
 
+const RECALL_KEY = ["recall-queue"];
+const PAGE_SIZE = 20;
+
 export function RecallQueue() {
   const { t } = useI18n();
   const { user } = useAuth();
   const qc = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
 
-  const { data: orders, isLoading } = useQuery<RecallOrder[]>({
-    queryKey: ["recall-queue"],
+  const { data, isLoading } = useQuery<{ rows: RecallOrder[]; total: number }>({
+    queryKey: [...RECALL_KEY, page],
     queryFn: async () => {
-      const { data, error } = await ordersDb
+      const from = page * PAGE_SIZE;
+      const { data, count, error } = await ordersDb
         .from("medical_orders")
-        .select("*, patients(full_name)")
+        .select("*, patients(full_name)", { count: "exact" })
         .eq("order_type", "follow_up")
         .in("status", ["open", "routed", "in_progress"])
-        .order("due_at", { ascending: true, nullsFirst: false });
+        .order("due_at", { ascending: true, nullsFirst: false })
+        .range(from, from + PAGE_SIZE - 1);
       if (error) throw error;
-      return (data as RecallOrder[]) ?? [];
+      return { rows: (data as RecallOrder[]) ?? [], total: count ?? 0 };
     },
   });
+  const orders = data?.rows;
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   useEffect(() => {
     const ch = supabase
       .channel("recall-queue-live")
       .on("postgres_changes", { event: "*", schema: "public", table: "medical_orders", filter: "order_type=eq.follow_up" }, () => {
-        qc.invalidateQueries({ queryKey: ["recall-queue"] });
+        qc.invalidateQueries({ queryKey: RECALL_KEY });
       })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
@@ -53,7 +62,7 @@ export function RecallQueue() {
     try {
       await uploadEvidence(id, null, type, staffId);
       toast.success(t(okKey));
-      qc.invalidateQueries({ queryKey: ["recall-queue"] });
+      qc.invalidateQueries({ queryKey: RECALL_KEY });
     } catch (e) {
       // follow_up thuộc phòng Tiếp đón → RLS chặn nếu ngoài phòng (42501).
       const code = (e as { code?: string } | null)?.code;
@@ -106,6 +115,13 @@ export function RecallQueue() {
               </div>
             );
           })
+        )}
+        {total > PAGE_SIZE && (
+          <div className="flex items-center justify-center gap-3 pt-2">
+            <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => Math.max(0, p - 1))}>{t("page_prev")}</Button>
+            <span className="text-sm text-muted-foreground tabular-nums">{t("page_of").replace("{a}", String(page + 1)).replace("{b}", String(totalPages))}</span>
+            <Button variant="outline" size="sm" disabled={page + 1 >= totalPages} onClick={() => setPage((p) => p + 1)}>{t("page_next")}</Button>
+          </div>
         )}
       </CardContent>
     </Card>

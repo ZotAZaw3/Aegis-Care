@@ -10,7 +10,6 @@ const labelMap: Record<string, string> = {
   patients: "patients",
   reception: "reception_management",
   visits: "sessions",
-  crm: "crm",
   admin: "admin",
   "follow-ups": "follow_ups",
 };
