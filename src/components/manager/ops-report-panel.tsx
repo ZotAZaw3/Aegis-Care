@@ -8,14 +8,18 @@ import { useI18n } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { OpsReportView } from "./ops-report-view";
 
-interface OpsReportRow { id: string; report: string | null; created_at: string; }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+interface OpsReportRow { id: string; report: string | null; metrics: any; created_at: string; }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type CurrentReport = { report: string | null; metrics: any };
 
 export function OpsReportPanel() {
   const { t } = useI18n();
   const qc = useQueryClient();
   const [generating, setGenerating] = useState(false);
-  const [current, setCurrent] = useState<string | null>(null);
+  const [current, setCurrent] = useState<CurrentReport | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const { data: history, isLoading } = useQuery<OpsReportRow[]>({
@@ -23,7 +27,7 @@ export function OpsReportPanel() {
     queryFn: async () => {
       const { data, error } = await ordersDb
         .from("ops_reports")
-        .select("id, report, created_at")
+        .select("id, report, metrics, created_at")
         .order("created_at", { ascending: false })
         .limit(10);
       if (error) throw error;
@@ -44,7 +48,7 @@ export function OpsReportPanel() {
       });
       if (!res.ok) { setError(res.status === 403 ? t("ops_forbidden") : t("ops_report_error")); return; }
       const json = await res.json();
-      setCurrent(json.report ?? t("ops_report_llm_unavailable"));
+      setCurrent({ report: json.report ?? null, metrics: json.metrics ?? null });
       qc.invalidateQueries({ queryKey: ["ops-reports"] });
     } catch {
       setError(t("ops_report_error"));
@@ -68,7 +72,9 @@ export function OpsReportPanel() {
       <CardContent className="space-y-3">
         {error && <div className="rounded-md border border-destructive/40 bg-destructive/5 p-2 text-sm text-destructive">{error}</div>}
         {current && (
-          <div className="whitespace-pre-wrap rounded-md border bg-muted/30 p-3 text-sm leading-relaxed">{current}</div>
+          current.metrics
+            ? <OpsReportView report={current.report} metrics={current.metrics} />
+            : <div className="whitespace-pre-wrap rounded-md border bg-muted/30 p-3 text-sm leading-relaxed">{current.report ?? t("ops_report_llm_unavailable")}</div>
         )}
         <div>
           <div className="mb-1.5 text-xs font-medium text-muted-foreground">{t("ops_report_history")}</div>
@@ -81,7 +87,7 @@ export function OpsReportPanel() {
               {(history ?? []).map((r) => (
                 <button
                   key={r.id}
-                  onClick={() => setCurrent(r.report ?? t("ops_report_llm_unavailable"))}
+                  onClick={() => setCurrent({ report: r.report, metrics: r.metrics })}
                   className="flex w-full items-center justify-between gap-2 rounded-md border p-2 text-left text-sm hover:border-primary transition-colors"
                 >
                   <span className="truncate">{new Date(r.created_at).toLocaleString("vi-VN")}</span>
