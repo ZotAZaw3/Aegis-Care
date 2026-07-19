@@ -1,4 +1,4 @@
-import { Stethoscope, Phone, Mail, MapPin, Facebook, Youtube, MessageCircle } from "lucide-react";
+import { Stethoscope, Phone, Mail, Facebook, Youtube, MessageCircle } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 const SOCIAL_LINKS = [
@@ -22,10 +22,6 @@ export function SiteFooter() {
           </div>
 
           <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 text-xs text-background/65">
-            <span className="flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5 shrink-0" />
-              {t("footer_address")}
-            </span>
             <a
               href="tel:19006969"
               className="flex items-center gap-1.5 font-semibold text-background hover:text-warning transition-colors"
