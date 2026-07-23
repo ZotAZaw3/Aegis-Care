@@ -1,5 +1,3 @@
-![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/ZotAZaw3/Aegis-Care?utm_source=oss&utm_medium=github&utm_campaign=ZotAZaw3%2FAegis-Care&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
-
 # Aegis Care
 
 **AI Clinic Operations Assistant** for dental clinics — VAIC 2026 entry. Aegis Care keeps every clinical decision with the clinician; the AI agent runs underneath to retrieve knowledge, watch process, and surface risk — never to diagnose or decide.
